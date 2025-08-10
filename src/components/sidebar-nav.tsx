@@ -18,7 +18,6 @@ export function SidebarNav() {
         <Collapsible key={index} defaultOpen={true}>
             <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium hover:bg-sidebar-accent">
                 <div className="flex items-center gap-2">
-                    <category.icon className="h-4 w-4" />
                     <span className="font-headline">{category.name}</span>
                 </div>
                 <ChevronsUpDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />

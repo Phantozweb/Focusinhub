@@ -40,6 +40,8 @@ export function UserNav() {
         router.push('/login');
     };
 
+    const isCeo = user?.username === 'Jana@Ceo';
+
 
   return (
     <DropdownMenu>
@@ -56,9 +58,9 @@ export function UserNav() {
             <>
                 <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.username}</p>
+                    <p className="text-sm font-medium leading-none">{isCeo ? 'Janarthan' : user.username}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                    Welcome back!
+                    {isCeo ? 'Founder & CEO' : 'Welcome back!'}
                     </p>
                 </div>
                 </DropdownMenuLabel>
