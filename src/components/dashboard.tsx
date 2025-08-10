@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Bot, Loader2, Wand2, Sparkles, Send, FileCheck2, Pencil } from 'lucide-react';
-import { draftMessage, DraftMessageInput } from '@/ai/flows/draft-message-flow';
+import { draftMessage } from '@/ai/flows/draft-message-flow';
 import { allChannels } from '@/lib/constants';
 import {
   Select,
@@ -25,13 +25,24 @@ import {
 } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-export function Dashboard() {
+type User = {
+    username: string;
+};
+
+export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
   const { toast } = useToast();
   const [isSending, startSending] = useTransition();
   const [isDrafting, startDrafting] = useTransition();
   const [message, setMessage] = useState('');
   const [draft, setDraft] = useState('');
-  const [channel, setChannel] = useState('company-announcements');
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+        setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const handleDraftMessage = async () => {
     if (!message) {
@@ -57,16 +68,30 @@ export function Dashboard() {
     }
 
     let webhookUrl = '';
-    if (channel === 'company-announcements') {
+    if (selectedChannel === 'company-announcements') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ANNOUNCEMENTS!;
-    } else if (channel === 'project-roadmap') {
+    } else if (selectedChannel === 'project-roadmap') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ROADMAP!;
     }
 
-    if (!webhookUrl) {
-      toast({ title: 'Webhook URL not configured', description: `Webhook for '${channel}' is not set.`, variant: 'destructive' });
+    if (!webhookUrl && (selectedChannel === 'company-announcements' || selectedChannel === 'project-roadmap')) {
+      toast({ title: 'Webhook URL not configured', description: `Webhook for '${selectedChannel}' is not set.`, variant: 'destructive' });
       return;
     }
+    
+    if (!allChannels.includes(selectedChannel)) {
+      toast({ title: 'Invalid Channel', description: `The channel '${selectedChannel}' is not a valid channel.`, variant: 'destructive' });
+      return;
+    }
+    
+    if(!webhookUrl) {
+      toast({ title: 'Messaging not supported', description: `Messaging to '${selectedChannel}' is not supported yet.`, variant: 'destructive' });
+      return;
+    }
+
+    const senderName = user?.username === 'Jana@Ceo' ? 'Janarthan' : user?.username || 'Unknown User';
+    const sentAt = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
 
     startSending(async () => {
       try {
@@ -78,12 +103,12 @@ export function Dashboard() {
           body: JSON.stringify({
             embeds: [
               {
-                title: `New Message in #${channel}`,
+                title: `New Message in #${selectedChannel}`,
                 description: finalMessage,
                 color: 7506394, // A nice purple color
                 timestamp: new Date().toISOString(),
                 footer: {
-                  text: 'Sent from Focus-IN Hub',
+                  text: `Sent by ${senderName} at ${sentAt}`,
                 },
               },
             ],
@@ -110,22 +135,10 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="font-headline flex items-center gap-2"><Bot /> Message Broadcaster</CardTitle>
             <CardDescription>
-              Select a channel, craft your message, let the AI refine it, and send it to your Discord server.
+              You are currently sending to <span className="font-bold text-primary">#{selectedChannel}</span>. Craft your message, let the AI refine it, and send it.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-              <div className="space-y-2">
-                  <Label htmlFor="channel">Channel</Label>
-                   <Select value={channel} onValueChange={setChannel}>
-                    <SelectTrigger className="w-full md:w-1/2">
-                        <SelectValue placeholder="Select a channel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="company-announcements">#company-announcements</SelectItem>
-                        <SelectItem value="project-roadmap">#project-roadmap</SelectItem>
-                    </SelectContent>
-                    </Select>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="message">Your Raw Message</Label>
                 <Textarea
