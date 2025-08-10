@@ -2,7 +2,6 @@
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarInset,
   SidebarTrigger,
@@ -10,19 +9,20 @@ import {
 import { SidebarNav } from '@/components/sidebar-nav';
 import { UserNav } from '@/components/user-nav';
 import { Dashboard } from '@/components/dashboard';
-import { Input } from '@/components/ui/input';
-import { Eye, Search } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<{ username: string } | null>(null);
   const [selectedChannel, setSelectedChannel] = useState('company-announcements');
 
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (user) {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
     } else {
       router.push('/login');
@@ -32,6 +32,8 @@ export default function Home() {
   if (!isAuthenticated) {
     return null; // Or a loading spinner
   }
+
+  const isCeo = user?.username === 'Jana@Ceo';
 
   return (
     <>
@@ -50,18 +52,20 @@ export default function Home() {
             setSelectedChannel={setSelectedChannel}
           />
         </SidebarContent>
-        <SidebarFooter>
-          <UserNav />
-        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
           <div className="flex items-center gap-2">
-            <SidebarTrigger className="md:hidden" />
-            <div className="hidden items-center gap-2 md:flex">
-                <h1 className="font-headline text-lg font-semibold">Dashboard</h1>
+            <SidebarTrigger />
+             <div className="hidden items-center gap-2 md:flex">
+                <h1 className="font-headline text-lg font-semibold">
+                  {isCeo ? "Welcome, Founder!" : `Dashboard`}
+                </h1>
             </div>
           </div>
+           <div className="flex items-center gap-4">
+              <UserNav />
+           </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6">
           <Dashboard selectedChannel={selectedChannel} />
