@@ -28,6 +28,7 @@ type ChatMessage = {
     sender: 'user' | 'ai';
     text: string;
     isDraft?: boolean;
+    title?: string;
 };
 
 export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
@@ -37,6 +38,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
   const [currentMessage, setCurrentMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [finalDraft, setFinalDraft] = useState<string | null>(null);
+  const [finalTitle, setFinalTitle] = useState<string | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
 
@@ -57,9 +59,10 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     startDrafting(async () => {
       try {
         const result = await draftMessage({ rawMessage: currentMessage });
-        const newAiMessage: ChatMessage = { sender: 'ai', text: result.draft, isDraft: true };
+        const newAiMessage: ChatMessage = { sender: 'ai', text: result.draft, isDraft: true, title: result.title };
         setChatHistory(prev => [...prev, newAiMessage]);
         setFinalDraft(result.draft);
+        setFinalTitle(result.title);
       } catch (error) {
         toast({ title: 'Error drafting message', description: 'Could not connect to the AI service.', variant: 'destructive' });
         const errorAiMessage: ChatMessage = { sender: 'ai', text: 'Sorry, I had trouble drafting that message.' };
@@ -69,17 +72,18 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
   };
 
   const handleApproveDraft = () => {
-      if (!finalDraft) return;
-      handleSendMessage(finalDraft);
+      if (!finalDraft || !finalTitle) return;
+      handleSendMessage(finalTitle, finalDraft);
   };
   
   const handleUseAsNewMessage = (text: string) => {
     setCurrentMessage(text);
     setFinalDraft(null);
+    setFinalTitle(null);
     setChatHistory(prev => prev.filter(msg => !(msg.isDraft && msg.text === text)));
   }
 
-  const handleSendMessage = async (messageToSend: string) => {
+  const handleSendMessage = async (title: string, messageToSend: string) => {
     if (!messageToSend) {
       toast({ title: 'Message is empty', description: 'Please enter a message to send.', variant: 'destructive' });
       return;
@@ -107,7 +111,8 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
       return;
     }
 
-    const senderName = user?.username === 'Jana@Ceo' ? 'Janarthan' : user?.username || 'Unknown User';
+    const isCeo = user?.username === 'Jana@Ceo';
+    const senderName = isCeo ? 'Janarthan (Founder & CEO)' : user?.username || 'Unknown User';
     const sentAt = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
 
@@ -121,7 +126,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
           body: JSON.stringify({
             embeds: [
               {
-                title: `New Message in #${selectedChannel}`,
+                title: title,
                 description: messageToSend,
                 color: 2123432, // Soft blue
                 timestamp: new Date().toISOString(),
@@ -138,6 +143,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
           setCurrentMessage('');
           setChatHistory([]);
           setFinalDraft(null);
+          setFinalTitle(null);
         } else {
           const errorText = await response.text();
           toast({ title: 'Error Sending Message', description: `Discord API returned an error: ${errorText}`, variant: 'destructive' });
@@ -170,6 +176,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
                           </Avatar>
                       )}
                       <div className={cn("max-w-md p-3 rounded-lg", chat.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                          {chat.title && <p className="font-bold text-lg mb-2">{chat.title}</p>}
                           <p className="text-sm whitespace-pre-wrap">{chat.text}</p>
                           {chat.isDraft && (
                               <div className='flex gap-2 mt-4'>

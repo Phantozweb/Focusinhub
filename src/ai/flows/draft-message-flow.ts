@@ -2,7 +2,7 @@
 /**
  * @fileOverview An AI flow for drafting professional messages.
  *
- * - draftMessage - A function that takes a raw message and returns a polished draft.
+ * - draftMessage - A function that takes a raw message and returns a polished draft and a catchy title.
  * - DraftMessageInput - The input type for the draftMessage function.
  * - DraftMessageOutput - The return type for the draftMessage function.
  */
@@ -16,6 +16,7 @@ const DraftMessageInputSchema = z.object({
 export type DraftMessageInput = z.infer<typeof DraftMessageInputSchema>;
 
 const DraftMessageOutputSchema = z.object({
+  title: z.string().describe('A short, catchy, and professional title for the announcement.'),
   draft: z.string().describe('The professionally drafted message, ready to be sent.'),
 });
 export type DraftMessageOutput = z.infer<typeof DraftMessageOutputSchema>;
@@ -30,11 +31,12 @@ const prompt = ai.definePrompt({
   output: {schema: DraftMessageOutputSchema},
   prompt: `You are an expert internal communications manager. Your task is to take a raw, informal message and transform it into a professional, clear, and engaging announcement suitable for a company-wide Discord server.
 
-- Keep the tone positive and professional.
+- Create a short, catchy, and professional title for the announcement.
+- Keep the message tone positive and professional.
 - Correct any grammar or spelling mistakes.
 - Structure the message for readability (e.g., using bullet points if necessary).
 - Do not add any extra information that wasn't in the original message.
-- The output should be just the drafted message, without any preamble or extra text.
+- The output should be just the title and the drafted message, without any preamble or extra text.
 
 Raw message:
 {{{rawMessage}}}
