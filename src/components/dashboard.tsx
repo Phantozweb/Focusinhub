@@ -212,7 +212,6 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
                       </div>
                       {chat.role === 'user' && (
                           <Avatar className="w-8 h-8">
-                                <AvatarImage src={isCeo ? "https://i.pravatar.cc/150?u=a042581f4e29026704d" : undefined} alt="User Avatar" />
                                 <AvatarFallback>{user ? user.username.substring(0,2).toUpperCase() : <User size={20} />}</AvatarFallback>
                           </Avatar>
                       )}

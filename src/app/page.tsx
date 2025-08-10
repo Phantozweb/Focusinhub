@@ -62,18 +62,6 @@ export default function Home() {
                 <h1 className="font-headline text-lg font-semibold">Dashboard</h1>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="relative hidden w-full max-w-sm sm:block">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search messages..."
-                className="bg-background pl-8"
-              />
-            </div>
-            <div className="hidden sm:flex">
-              <UserNav />
-            </div>
-          </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6">
           <Dashboard selectedChannel={selectedChannel} />
