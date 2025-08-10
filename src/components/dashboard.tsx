@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Bot, Loader2, Wand2, ThumbsUp, User, Pencil, Send } from 'lucide-react';
-import { draftMessage, DraftMessageOutput } from '@/ai/flows/draft-message-flow';
+import { draftMessage, DraftMessageOutput, DraftMessageInput } from '@/ai/flows/draft-message-flow';
 import { allChannels } from '@/lib/constants';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from '@/lib/utils';
@@ -61,8 +61,18 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     if (!chatInput) return;
 
     const newUserMessage: ChatMessage = { role: 'user', content: chatInput };
-    const newHistory = [...chatHistory, newUserMessage];
-    setChatHistory(newHistory);
+    
+    // We need to shape the history correctly for the AI
+    const historyForAI: DraftMessageInput['history'] = chatHistory.map(msg => {
+        if(msg.role === 'model' && msg.draft) {
+            return { role: 'model', content: JSON.stringify(msg.draft) }
+        }
+        return { role: msg.role, content: msg.content };
+    });
+
+    const newHistory = [...historyForAI, { role: 'user', content: chatInput }];
+    setChatHistory(prev => [...prev, newUserMessage]);
+    
     const initialMessage = chatHistory.length === 0 ? chatInput : undefined;
     setChatInput('');
     
@@ -74,6 +84,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
         setCurrentDraft(result);
         setIsEditing(false);
       } catch (error) {
+        console.error(error);
         toast({ title: 'Error drafting message', description: 'Could not connect to the AI service.', variant: 'destructive' });
         const errorAiMessage: ChatMessage = { role: 'model', content: 'Sorry, I had trouble drafting that message.' };
         setChatHistory(prev => [...prev, errorAiMessage]);
@@ -135,7 +146,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
               {
                 title: title,
                 description: messageToSend,
-                color: 2123432, // Soft blue
+                color: 6940250, // Muted green accent
                 timestamp: new Date().toISOString(),
                 footer: {
                   text: `Sent by ${senderName} at ${sentAt}`,
@@ -193,7 +204,11 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
                                   </div>
                               </div>
                           )}
-                          {!chat.isDraft && <p className="text-sm whitespace-pre-wrap">{chat.content}</p>}
+                           {(chat.isDraft && isEditing && chat.draft) ? (
+                              // This message is the current draft being edited, so we don't display it here.
+                              // The editing UI is in the footer.
+                              null
+                           ) : !chat.isDraft && <p className="text-sm whitespace-pre-wrap">{chat.content}</p> }
                       </div>
                       {chat.role === 'user' && (
                           <Avatar className="w-8 h-8">
@@ -246,9 +261,9 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
                         handleSendToAI();
                     }
                   }}
-                  disabled={isDrafting || isEditing}
+                  disabled={isDrafting}
               />
-              <Button onClick={handleSendToAI} disabled={!chatInput || isDrafting || isEditing}>
+              <Button onClick={handleSendToAI} disabled={!chatInput || isDrafting}>
                 {isDrafting ? <Loader2 className="animate-spin" /> : (chatHistory.length === 0 ? <Wand2 /> : <Send />)} 
                 <span className='sr-only'>{chatHistory.length === 0 ? 'Draft with AI' : 'Send'}</span>
               </Button>
