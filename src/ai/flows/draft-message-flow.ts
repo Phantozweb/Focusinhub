@@ -50,12 +50,13 @@ Initial raw message:
 {{{initialMessage}}}
 {{/if}}
 
-Conversation History:
+Conversation History (A sequence of User messages and AI responses):
 {{#each history}}
-{{#if (eq role "user")}}
-User: {{{content}}}
-{{else}}
-AI: (Responded with a draft: {{{content}}})
+{{#if (this.role.includes "user")}}
+User: {{{this.content}}}
+{{/if}}
+{{#if (this.role.includes "model")}}
+AI: (Responded with a draft: {{{this.content}}})
 {{/if}}
 {{/each}}
 `,
