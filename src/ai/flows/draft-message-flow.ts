@@ -11,7 +11,11 @@ import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const DraftMessageInputSchema = z.object({
-  rawMessage: z.string().describe('The raw, informal message from the user.'),
+  history: z.array(z.object({
+    role: z.enum(['user', 'model']),
+    content: z.string(),
+  })).describe('The conversation history between the user and the AI.'),
+  initialMessage: z.string().optional().describe('The very first message from the user to start the draft.'),
 });
 export type DraftMessageInput = z.infer<typeof DraftMessageInputSchema>;
 
@@ -29,17 +33,28 @@ const prompt = ai.definePrompt({
   name: 'draftMessagePrompt',
   input: {schema: DraftMessageInputSchema},
   output: {schema: DraftMessageOutputSchema},
-  prompt: `You are an expert internal communications manager. Your task is to take a raw, informal message and transform it into a professional, clear, and engaging announcement suitable for a company-wide Discord server.
+  prompt: `You are an expert internal communications manager acting as a conversational AI assistant. Your task is to help a user draft a professional, clear, and engaging announcement for a company-wide Discord server based on a conversation with them.
 
-- Create a short, catchy, and professional title for the announcement.
+- Your first response should be a polished draft based on the user's initial raw message.
+- For subsequent turns, you will refine the draft based on the user's feedback. Read the entire history to understand the context.
+- Always create a short, catchy, and professional title for the announcement.
 - Keep the message tone positive and professional.
 - Correct any grammar or spelling mistakes.
 - Structure the message for readability (e.g., using bullet points if necessary).
-- Do not add any extra information that wasn't in the original message.
-- The output should be just the title and the drafted message, without any preamble or extra text.
+- Do not add any extra information that wasn't in the original message unless requested.
+- If the user asks for variations, provide them.
+- Your final output for each turn must be a complete, updated draft and title, not just the changes.
 
-Raw message:
-{{{rawMessage}}}
+{{#if initialMessage}}
+Initial raw message:
+{{{initialMessage}}}
+{{/if}}
+
+Conversation History:
+{{#each history}}
+{{#if (eq role 'user')}}User: {{content}}{{/if}}
+{{#if (eq role 'model')}}AI: Here is the draft titled "{{title}}": {{draft}}{{/if}}
+{{/each}}
 `,
 });
 
