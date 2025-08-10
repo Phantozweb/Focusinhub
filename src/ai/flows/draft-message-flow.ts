@@ -52,8 +52,11 @@ Initial raw message:
 
 Conversation History:
 {{#each history}}
-{{#if (eq role 'user')}}User: {{content}}{{/if}}
-{{#if (eq role 'model')}}AI: Here is the draft titled "{{title}}": {{draft}}{{/if}}
+{{#if (eq role 'user')}}
+User: {{content}}
+{{else}}
+AI: (Responded with a draft)
+{{/if}}
 {{/each}}
 `,
 });
