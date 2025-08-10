@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, ShieldBan } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
@@ -29,17 +29,17 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-                <Eye className="h-12 w-12 text-primary" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <Eye className="h-8 w-8 text-primary" />
             </div>
           <CardTitle className="text-2xl font-headline">Focus-IN Hub Login</CardTitle>
           <CardDescription>Enter your credentials to access the hub.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="userId">User ID</Label>
               <Input
@@ -62,10 +62,10 @@ export default function Login() {
                 required
               />
             </div>
-          </div>
-          <Button onClick={handleLogin} className="w-full mt-6">
-            Log In
-          </Button>
+             <Button type="submit" className="w-full !mt-6">
+                Log In
+             </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

@@ -49,7 +49,7 @@ export function UserNav() {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             {user ? <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User Avatar" /> : null}
-            <AvatarFallback>{user ? user.username.substring(0,2).toUpperCase() : <User />}</AvatarFallback>
+            <AvatarFallback>{user ? user.username.substring(0,2).toUpperCase() : <LogIn />}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
