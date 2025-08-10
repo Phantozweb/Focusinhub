@@ -24,13 +24,14 @@ export function SidebarNav({ selectedChannel, setSelectedChannel }: SidebarNavPr
   return (
     <nav className="flex flex-col gap-2 px-2">
       {channelCategories.map((category, index) => {
-        const channelsToShow = category.channels.filter(channel => !channel.isLeadershipOnly || isCeo)
+        const channelsToShow = category.channels.filter(channel => !channel.isPrivate || isCeo)
         if (channelsToShow.length === 0) return null;
 
         return (
             <Collapsible key={index} defaultOpen={true}>
                 <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium hover:bg-sidebar-accent">
                     <div className="flex items-center gap-2">
+                        <span className="text-lg">{category.icon}</span>
                         <span className="font-headline">{category.name}</span>
                     </div>
                     <ChevronsUpDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
@@ -48,10 +49,10 @@ export function SidebarNav({ selectedChannel, setSelectedChannel }: SidebarNavPr
                                 )}
                                 onClick={() => setSelectedChannel(channel.name)}
                                 >
-                                <span>{channel.isPrivate ? "🔒" : "📢"}</span>
+                                <span>{channel.icon}</span>
                                 <span>{channel.name}</span>
-                                {open && channel.isLeadershipOnly && (
-                                    <span className="ml-auto text-xs text-primary/70">(Leadership)</span>
+                                {open && channel.isPrivate && (
+                                    <span className="ml-auto text-xs text-primary/70">(Private)</span>
                                 )}
                             </Button>
                         ))}

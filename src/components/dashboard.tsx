@@ -13,28 +13,31 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, Loader2, Wand2, Sparkles, Send, FileCheck2, Pencil } from 'lucide-react';
+import { Bot, Loader2, Wand2, Sparkles, Send, FileCheck2, Pencil, User, ThumbsUp } from 'lucide-react';
 import { draftMessage } from '@/ai/flows/draft-message-flow';
 import { allChannels } from '@/lib/constants';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { cn } from '@/lib/utils';
 
 type User = {
     username: string;
+};
+
+type ChatMessage = {
+    sender: 'user' | 'ai';
+    text: string;
+    isDraft?: boolean;
 };
 
 export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
   const { toast } = useToast();
   const [isSending, startSending] = useTransition();
   const [isDrafting, startDrafting] = useTransition();
-  const [message, setMessage] = useState('');
-  const [draft, setDraft] = useState('');
+  const [currentMessage, setCurrentMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [finalDraft, setFinalDraft] = useState<string | null>(null);
+
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -44,25 +47,40 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     }
   }, []);
 
-  const handleDraftMessage = async () => {
-    if (!message) {
-      toast({ title: 'Message is empty', description: 'Please enter a message to draft.', variant: 'destructive' });
-      return;
-    }
-    setDraft('');
+  const handleSendToAI = () => {
+    if (!currentMessage) return;
+
+    const newUserMessage: ChatMessage = { sender: 'user', text: currentMessage };
+    setChatHistory(prev => [...prev, newUserMessage]);
+    setCurrentMessage('');
+    
     startDrafting(async () => {
       try {
-        const result = await draftMessage({ rawMessage: message });
-        setDraft(result.draft);
+        const result = await draftMessage({ rawMessage: currentMessage });
+        const newAiMessage: ChatMessage = { sender: 'ai', text: result.draft, isDraft: true };
+        setChatHistory(prev => [...prev, newAiMessage]);
+        setFinalDraft(result.draft);
       } catch (error) {
         toast({ title: 'Error drafting message', description: 'Could not connect to the AI service.', variant: 'destructive' });
+        const errorAiMessage: ChatMessage = { sender: 'ai', text: 'Sorry, I had trouble drafting that message.' };
+        setChatHistory(prev => [...prev, errorAiMessage]);
       }
     });
   };
 
-  const handleSendMessage = async () => {
-    const finalMessage = draft || message;
-    if (!finalMessage) {
+  const handleApproveDraft = () => {
+      if (!finalDraft) return;
+      handleSendMessage(finalDraft);
+  };
+  
+  const handleUseAsNewMessage = (text: string) => {
+    setCurrentMessage(text);
+    setFinalDraft(null);
+    setChatHistory(prev => prev.filter(msg => !(msg.isDraft && msg.text === text)));
+  }
+
+  const handleSendMessage = async (messageToSend: string) => {
+    if (!messageToSend) {
       toast({ title: 'Message is empty', description: 'Please enter a message to send.', variant: 'destructive' });
       return;
     }
@@ -104,8 +122,8 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
             embeds: [
               {
                 title: `New Message in #${selectedChannel}`,
-                description: finalMessage,
-                color: 7506394, // A nice purple color
+                description: messageToSend,
+                color: 2123432, // Soft blue
                 timestamp: new Date().toISOString(),
                 footer: {
                   text: `Sent by ${senderName} at ${sentAt}`,
@@ -117,8 +135,9 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
 
         if (response.ok) {
           toast({ title: 'Message Sent!', description: 'Your message has been posted to Discord.' });
-          setMessage('');
-          setDraft('');
+          setCurrentMessage('');
+          setChatHistory([]);
+          setFinalDraft(null);
         } else {
           const errorText = await response.text();
           toast({ title: 'Error Sending Message', description: `Discord API returned an error: ${errorText}`, variant: 'destructive' });
@@ -129,60 +148,79 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     });
   };
 
+  const isCeo = user?.username === 'Jana@Ceo';
+
   return (
     <div className="w-full grid gap-6">
-        <Card>
+        <Card className="flex flex-col h-[calc(100vh-4rem)]">
           <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2"><Bot /> Message Broadcaster</CardTitle>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <Bot /> Message Composer
+            </CardTitle>
             <CardDescription>
-              You are currently sending to <span className="font-bold text-primary">#{selectedChannel}</span>. Craft your message, let the AI refine it, and send it.
+              Drafting for <span className="font-bold text-primary">#{selectedChannel}</span>. Chat with the AI to craft the perfect message.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="message">Your Raw Message</Label>
-                <Textarea
-                  id="message"
-                  placeholder="e.g., hey team, new intern alex is starting monday on marketing team, lets welcome them"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="min-h-[150px]"
-                />
-              </div>
-              <Button onClick={handleDraftMessage} disabled={isDrafting || !message}>
-                {isDrafting ? <Loader2 className="animate-spin" /> : <Wand2 className="mr-2" />} 
-                Draft with AI
-              </Button>
-
-              {isDrafting && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="animate-spin" />
-                      <span>AI is drafting your message...</span>
+          <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+              {chatHistory.map((chat, index) => (
+                  <div key={index} className={cn("flex items-start gap-3", chat.sender === 'user' ? 'justify-end' : 'justify-start')}>
+                      {chat.sender === 'ai' && (
+                          <Avatar className="w-8 h-8">
+                              <AvatarFallback><Bot size={20} /></AvatarFallback>
+                          </Avatar>
+                      )}
+                      <div className={cn("max-w-md p-3 rounded-lg", chat.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                          <p className="text-sm whitespace-pre-wrap">{chat.text}</p>
+                          {chat.isDraft && (
+                              <div className='flex gap-2 mt-4'>
+                                  <Button size="sm" onClick={() => handleUseAsNewMessage(chat.text)} variant="outline"><Pencil className="mr-2 h-4 w-4" />Edit</Button>
+                                  <Button size="sm" onClick={handleApproveDraft} disabled={isSending} className="bg-green-600 hover:bg-green-700">
+                                      {isSending ? <Loader2 className="animate-spin" /> : <ThumbsUp className="mr-2 h-4 w-4" />}
+                                      Approve & Send
+                                  </Button>
+                              </div>
+                          )}
+                      </div>
+                      {chat.sender === 'user' && (
+                          <Avatar className="w-8 h-8">
+                                <AvatarImage src={isCeo ? "https://i.pravatar.cc/150?u=a042581f4e29026704d" : undefined} alt="User Avatar" />
+                                <AvatarFallback>{user ? user.username.substring(0,2).toUpperCase() : <User size={20} />}</AvatarFallback>
+                          </Avatar>
+                      )}
+                  </div>
+              ))}
+               {isDrafting && (
+                  <div className="flex items-center gap-2 text-muted-foreground justify-start">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback><Bot size={20} /></AvatarFallback>
+                      </Avatar>
+                      <div className="bg-muted p-3 rounded-lg">
+                        <Loader2 className="animate-spin" />
+                      </div>
                   </div>
               )}
-
-              {draft && (
-                <Alert>
-                    <Sparkles className="h-4 w-4" />
-                    <AlertTitle className='font-headline'>AI-Generated Draft</AlertTitle>
-                    <AlertDescription className="prose prose-sm dark:prose-invert max-w-none">
-                        <p>{draft}</p>
-                        <div className='flex gap-2 mt-4'>
-                            <Button size="sm" onClick={() => setDraft('')} variant="outline"><Pencil className="mr-2" />Edit</Button>
-                            <Button size="sm" onClick={() => {
-                                setMessage(draft);
-                                setDraft('');
-                            }}><FileCheck2 className="mr-2" />Use This Draft</Button>
-                        </div>
-                    </AlertDescription>
-                </Alert>
-              )}
           </CardContent>
-          <CardFooter>
-            <Button className="ml-auto" onClick={handleSendMessage} disabled={isSending || (!message && !draft)}>
-                {isSending ? <Loader2 className="animate-spin" /> : <Send className="mr-2" />} 
-                Send to Discord
-            </Button>
+          <CardFooter className="p-4 border-t">
+            <div className='w-full flex items-center gap-2'>
+              <Textarea
+                  id="message"
+                  placeholder={finalDraft ? "The AI has provided a draft. You can edit it or approve it." : "Type your message or refinement here..."}
+                  value={currentMessage}
+                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  className="flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendToAI();
+                    }
+                  }}
+                  disabled={!!finalDraft || isDrafting}
+              />
+              <Button onClick={handleSendToAI} disabled={!currentMessage || !!finalDraft || isDrafting}>
+                {isDrafting ? <Loader2 className="animate-spin" /> : <Wand2 />} 
+                <span className='sr-only'>Draft with AI</span>
+              </Button>
+            </div>
           </CardFooter>
         </Card>
     </div>
