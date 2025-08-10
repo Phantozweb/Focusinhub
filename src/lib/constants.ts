@@ -53,7 +53,7 @@ export const channelCategories = [
     icon: Handshake,
     channels: [
       { name: 'client-onboarding', isPrivate: false, isLeadershipOnly: false },
-      { name:- 'active-clients', isPrivate: false, isLeadershipOnly: false },
+      { name: 'active-clients', isPrivate: false, isLeadershipOnly: false },
       { name: 'support-tickets', isPrivate: false, isLeadershipOnly: false },
       { name: 'success-stories', isPrivate: false, isLeadershipOnly: false },
     ],

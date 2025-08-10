@@ -1,3 +1,4 @@
+'use client';
 import {
   Sidebar,
   SidebarContent,
@@ -10,27 +11,34 @@ import { SidebarNav } from '@/components/sidebar-nav';
 import { UserNav } from '@/components/user-nav';
 import { Dashboard } from '@/components/dashboard';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Login from './login/page';
 
 export default function Home() {
+    const router = useRouter();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        const user = localStorage.getItem('user');
+        if (user) {
+            setIsAuthenticated(true);
+        } else {
+            router.push('/login');
+        }
+    }, [router]);
+
+    if (!isAuthenticated) {
+        return null; // Or a loading spinner
+    }
+
   return (
     <>
       <Sidebar className="border-r">
         <SidebarHeader>
           <div className="flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 256 256"
-              className="h-7 w-7 text-primary"
-            >
-              <rect width="256" height="256" fill="none"></rect>
-              <path
-                d="M128,24a104,104,0,1,0,104,104A104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"
-                fill="currentColor"
-                className="text-foreground/20"
-              ></path>
-              <circle cx="128" cy="128" r="40" fill="currentColor"></circle>
-            </svg>
+            <Eye className="h-7 w-7 text-primary" />
             <h1 className="font-headline text-xl font-semibold">
               Focus-IN Hub
             </h1>
