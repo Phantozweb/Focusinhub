@@ -52,7 +52,7 @@ Initial raw message:
 
 Conversation History:
 {{#each history}}
-{{#if (eq role 'user')}}
+{{#if (eq role "user")}}
 User: {{{content}}}
 {{else}}
 AI: (Responded with a draft: {{{content}}})
