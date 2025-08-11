@@ -87,6 +87,7 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
         properties: {
             'Log out': { date: { start: new Date().toISOString() } },
             'Notes': { rich_text: [{ text: { content: notes } }] },
+            'Status': { select: { name: 'Offline' } },
         },
     });
 }
@@ -95,8 +96,18 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
     if (!biometricsDatabaseId) {
         throw new Error('Notion biometrics database ID is not configured.');
     }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const response = await notion.databases.query({
         database_id: biometricsDatabaseId,
+        filter: {
+            property: 'Date',
+            date: {
+                on_or_after: today.toISOString().split('T')[0],
+            },
+        },
         sorts: [{
             property: 'Log in',
             direction: 'descending'
@@ -114,8 +125,8 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
         return {
             id: page.id,
             name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : 'Unnamed',
-            checkIn: checkInDate ? new Date(checkInDate).toLocaleString() : null,
-            checkOut: checkOutDate ? new Date(checkOutDate).toLocaleString() : null,
+            checkIn: checkInDate ? new Date(checkInDate).toLocaleTimeString() : null,
+            checkOut: checkOutDate ? new Date(checkOutDate).toLocaleTimeString() : null,
             status: isOnline ? onlineStatus : 'Offline',
             notes: anyPage.properties.Notes?.rich_text ? getPlainText(anyPage.properties.Notes.rich_text) : null,
         };

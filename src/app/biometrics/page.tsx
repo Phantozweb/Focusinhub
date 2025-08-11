@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -18,16 +18,17 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, User, ListChecks, Signal, SignalLow, Users, Briefcase, Wand, PersonStanding } from 'lucide-react';
+import { Loader2, User, ListChecks, Signal, SignalLow, Users, Briefcase, Wand, PersonStanding, RefreshCw } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BiometricRecord, getBiometricData } from '@/services/notion';
+import { Button } from '@/components/ui/button';
 
 export default function BiometricsPage() {
   const [records, setRecords] = useState<BiometricRecord[]>([]);
   const [isLoading, startLoading] = useTransition();
   const { toast } = useToast();
 
-  useEffect(() => {
+  const fetchBiometricData = useCallback(async () => {
     startLoading(async () => {
       try {
         const biometricData = await getBiometricData();
@@ -42,6 +43,18 @@ export default function BiometricsPage() {
       }
     });
   }, [toast]);
+
+  useEffect(() => {
+    fetchBiometricData();
+  }, [fetchBiometricData]);
+
+  const handleRefresh = () => {
+    fetchBiometricData();
+    toast({
+        title: 'Refreshed!',
+        description: 'The biometrics log has been updated.',
+    });
+  }
 
   const getStatusVariant = (status: string | null) => {
     switch (status) {
@@ -105,17 +118,23 @@ export default function BiometricsPage() {
             </CardContent>
         </Card>
         <Card>
-        <CardHeader>
-            <div className="flex items-center gap-2">
-                <ListChecks className="h-6 w-6" />
-                <CardTitle>Biometrics Log</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <div className="flex items-center gap-2">
+                    <ListChecks className="h-6 w-6" />
+                    <CardTitle>Biometrics Log</CardTitle>
+                </div>
+                <CardDescription>
+                A live log of check-in and check-out data from Notion.
+                </CardDescription>
             </div>
-            <CardDescription>
-            A live log of check-in and check-out data from Notion.
-            </CardDescription>
+            <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isLoading}>
+                <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Refresh</span>
+            </Button>
         </CardHeader>
         <CardContent>
-            {isLoading ? (
+            {isLoading && records.length === 0 ? (
             <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>

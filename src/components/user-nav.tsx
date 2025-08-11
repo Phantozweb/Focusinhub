@@ -45,26 +45,32 @@ export function UserNav() {
         }
     }, []);
 
+    const completeLogout = () => {
+        localStorage.removeItem('user');
+        setUser(null);
+        setLogoutDialogOpen(false);
+        router.push('/login');
+    }
+
     const handleLogoutConfirm = async (notes: string) => {
         if (!user || !user.notionPageId) {
-            toast({ title: "Session error", description: "No active session found to log out.", variant: "destructive" });
+            toast({ title: "Session error", description: "No active session found. Logging you out.", variant: "destructive" });
+            completeLogout();
             return;
         }
 
         try {
             await checkOutUser(user.notionPageId, notes);
-            localStorage.removeItem('user');
-            setUser(null);
-            setLogoutDialogOpen(false);
             toast({ title: "Logged Out", description: "Your session has ended and your notes have been saved."});
-            router.push('/login');
         } catch (error) {
             console.error("Failed to check out user:", error);
             toast({
-                title: 'Logout Failed',
-                description: 'Could not save your notes to Notion. Please try again.',
+                title: 'Logout Sync Failed',
+                description: 'Could not save your notes to Notion, but you have been logged out.',
                 variant: 'destructive',
             });
+        } finally {
+            completeLogout();
         }
     };
 
