@@ -7,7 +7,7 @@ import { ai } from '@/ai/genkit';
 import { getTasksFromNotion, NotionTask } from '@/services/notion';
 import { z } from 'zod';
 
-export const GetNotionTasksOutputSchema = z.array(z.object({
+const GetNotionTasksOutputSchema = z.array(z.object({
     id: z.string(),
     title: z.string(),
     status: z.string().nullable(),
