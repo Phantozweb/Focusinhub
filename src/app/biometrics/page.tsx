@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState, useTransition, useCallback } from 'react';
@@ -22,6 +23,7 @@ import { Loader2, User, ListChecks, Signal, SignalLow, Users, Briefcase, Wand, P
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BiometricRecord, getBiometricData } from '@/services/notion';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function BiometricsPage() {
   const [records, setRecords] = useState<BiometricRecord[]>([]);
