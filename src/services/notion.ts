@@ -70,8 +70,8 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
         parent: { database_id: biometricsDatabaseId },
         properties: {
             'Name': { title: [{ text: { content: name } }] },
-            'Date': { date: { start: now.toISOString().split('T')[0] } },
-            'Log in': { rich_text: [{ text: { content: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } }] },
+            'Date': { date: { start: now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) } },
+            'Log in': { rich_text: [{ text: { content: now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) } }] },
             'Status': { select: { name: status } },
         },
     });
@@ -85,7 +85,7 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
     await notion.pages.update({
         page_id: pageId,
         properties: {
-            'Log out': { rich_text: [{ text: { content: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } }] },
+            'Log out': { rich_text: [{ text: { content: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) } }] },
             'Notes': { rich_text: [{ text: { content: notes } }] },
             'Status': { select: { name: 'Offline' } },
         },
@@ -97,15 +97,14 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
         throw new Error('Notion biometrics database ID is not configured.');
     }
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
     const response = await notion.databases.query({
         database_id: biometricsDatabaseId,
         filter: {
             property: 'Date',
             date: {
-                on_or_after: today.toISOString().split('T')[0],
+                on_or_after: today,
             },
         },
         sorts: [{
