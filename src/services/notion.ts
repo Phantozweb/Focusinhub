@@ -4,10 +4,10 @@
  */
 
 import { Client } from '@notionhq/client';
-import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
-const databaseId = process.env.NOTION_DATABASE_ID!;
+const taskDatabaseId = process.env.NOTION_DATABASE_ID!;
+const biometricsDatabaseId = process.env.NOTION_BIOMETRICS_DATABASE_ID!;
 
 export interface NotionTask {
   id: string;
@@ -15,6 +15,15 @@ export interface NotionTask {
   status: string | null;
   assignee: string | null;
   createdTime: string;
+}
+
+export interface BiometricRecord {
+  id: string;
+  name: string;
+  checkIn: string | null;
+  checkOut: string | null;
+  status: 'Online' | 'Offline';
+  notes: string | null;
 }
 
 // A helper function to get the text from a Notion rich text array.
@@ -31,16 +40,15 @@ function getAssignee(people: any[]): string | null {
 }
 
 export async function getTasksFromNotion(): Promise<NotionTask[]> {
-  if (!databaseId) {
+  if (!taskDatabaseId) {
     throw new Error('Notion database ID is not configured.');
   }
 
   const response = await notion.databases.query({
-    database_id: databaseId,
+    database_id: taskDatabaseId,
   });
 
   return response.results.map((page) => {
-    // We need to cast the page to any to access the properties
     const anyPage = page as any;
     
     return {
@@ -51,4 +59,61 @@ export async function getTasksFromNotion(): Promise<NotionTask[]> {
       createdTime: new Date(page.created_time).toLocaleDateString(),
     };
   });
+}
+
+export async function checkInUser(name: string): Promise<string> {
+    if (!biometricsDatabaseId) {
+        throw new Error('Notion biometrics database ID is not configured.');
+    }
+    const response = await notion.pages.create({
+        parent: { database_id: biometricsDatabaseId },
+        properties: {
+            'Name': { title: [{ text: { content: name } }] },
+            'Check In': { date: { start: new Date().toISOString() } },
+            'Status': { select: { name: 'Online' } },
+        },
+    });
+    return response.id;
+}
+
+export async function checkOutUser(pageId: string, notes: string): Promise<void> {
+    if (!biometricsDatabaseId) {
+        throw new Error('Notion biometrics database ID is not configured.');
+    }
+    await notion.pages.update({
+        page_id: pageId,
+        properties: {
+            'Check Out': { date: { start: new Date().toISOString() } },
+            'Status': { select: { name: 'Offline' } },
+            'Notes': { rich_text: [{ text: { content: notes } }] },
+        },
+    });
+}
+
+export async function getBiometricData(): Promise<BiometricRecord[]> {
+    if (!biometricsDatabaseId) {
+        throw new Error('Notion biometrics database ID is not configured.');
+    }
+    const response = await notion.databases.query({
+        database_id: biometricsDatabaseId,
+        sorts: [{
+            property: 'Check In',
+            direction: 'descending'
+        }]
+    });
+
+    return response.results.map((page) => {
+        const anyPage = page as any;
+        const checkInDate = anyPage.properties['Check In']?.date?.start;
+        const checkOutDate = anyPage.properties['Check Out']?.date?.start;
+
+        return {
+            id: page.id,
+            name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : 'Unnamed',
+            checkIn: checkInDate ? new Date(checkInDate).toLocaleString() : null,
+            checkOut: checkOutDate ? new Date(checkOutDate).toLocaleString() : null,
+            status: anyPage.properties.Status?.select?.name || 'Offline',
+            notes: anyPage.properties.Notes?.rich_text ? getPlainText(anyPage.properties.Notes.rich_text) : null,
+        };
+    });
 }

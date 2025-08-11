@@ -9,11 +9,11 @@ import {
 import { SidebarNav } from '@/components/sidebar-nav';
 import { UserNav } from '@/components/user-nav';
 import { Dashboard } from '@/components/dashboard';
-import { Eye, Book, ListTodo } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NotionPage from './notion/page';
-import { Button } from '@/components/ui/button';
+import BiometricsPage from './biometrics/page';
 
 export default function Home() {
   const router = useRouter();
@@ -40,6 +40,9 @@ export default function Home() {
   const renderContent = () => {
     if (selectedChannel === 'notion-tasks') {
       return <NotionPage />;
+    }
+    if (selectedChannel === 'biometrics') {
+      return <BiometricsPage />;
     }
     return <Dashboard selectedChannel={selectedChannel} />;
   };
@@ -68,7 +71,7 @@ export default function Home() {
             <SidebarTrigger />
              <div className="hidden items-center gap-2 md:flex">
                 <h1 className="font-headline text-lg font-semibold">
-                  {isCeo ? "Welcome, Founder!" : `Dashboard`}
+                  {isCeo ? "Welcome, Founder!" : `Welcome, ${user?.username}!`}
                 </h1>
             </div>
           </div>

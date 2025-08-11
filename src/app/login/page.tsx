@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { checkInUser } from '@/services/notion';
 
 export default function Login() {
   const router = useRouter();
@@ -15,10 +16,22 @@ export default function Login() {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (userId === 'Jana@Ceo' && password === 'Janarthan@09876') {
-      localStorage.setItem('user', JSON.stringify({ username: 'Jana@Ceo' }));
-      router.push('/');
+      const user = { username: 'Jana@Ceo' };
+      try {
+        const notionPageId = await checkInUser(user.username);
+        const sessionData = { ...user, notionPageId };
+        localStorage.setItem('user', JSON.stringify(sessionData));
+        router.push('/');
+      } catch (error) {
+        console.error('Failed to check in user:', error);
+        toast({
+          title: 'Notion Check-in Failed',
+          description: 'Could not create a session in Notion. Please check API keys and permissions.',
+          variant: 'destructive',
+        });
+      }
     } else {
       toast({
         title: 'Login Failed',
@@ -29,22 +42,22 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-background">
+    <div className="relative grid min-h-screen w-full items-center justify-center bg-background">
        <div className="absolute inset-0 bg-gradient-to-br from-background to-slate-900/50 via-background -z-10" />
-       <div className="grid min-h-screen grid-cols-1 animate-in fade-in-25 duration-1000 md:grid-cols-2">
+       <div className="grid min-h-screen w-full grid-cols-1 items-center justify-center p-4 animate-in fade-in-25 duration-1000 md:grid-cols-2 md:p-0">
             <div className="hidden flex-col justify-center p-12 text-white md:flex">
                 <div className="flex items-center gap-4">
                      <Rocket className="h-12 w-12 text-primary" />
                      <h1 className="font-headline text-5xl font-bold">Focus-IN Hub</h1>
                 </div>
                 <p className="mt-4 text-2xl font-medium text-muted-foreground">
-                    Welcome to the workspace message composer tool for Discord.
+                    Your workspace message composer for Discord.
                 </p>
                 <p className="mt-2 text-lg text-muted-foreground/80">
                     Craft, refine, and send perfect announcements with the power of AI.
                 </p>
             </div>
-             <div className="flex items-center justify-center p-4">
+             <div className="flex w-full items-center justify-center p-4">
                 <Card className="w-full max-w-sm animate-in fade-in-50 zoom-in-95 duration-1000 fill-mode-both">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
