@@ -65,13 +65,13 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
     if (!biometricsDatabaseId) {
         throw new Error('Notion biometrics database ID is not configured.');
     }
-    const now = new Date().toISOString();
+    const now = new Date();
     const response = await notion.pages.create({
         parent: { database_id: biometricsDatabaseId },
         properties: {
-            'Name': { rich_text: [{ text: { content: name } }] },
-            'Date': { date: { start: now.split('T')[0] } },
-            'Log in': { date: { start: now } },
+            'Name': { title: [{ text: { content: name } }] },
+            'Date': { date: { start: now.toISOString().split('T')[0] } },
+            'Log in': { rich_text: [{ text: { content: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } }] },
             'Status': { select: { name: status } },
         },
     });
@@ -85,7 +85,7 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
     await notion.pages.update({
         page_id: pageId,
         properties: {
-            'Log out': { date: { start: new Date().toISOString() } },
+            'Log out': { rich_text: [{ text: { content: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } }] },
             'Notes': { rich_text: [{ text: { content: notes } }] },
             'Status': { select: { name: 'Offline' } },
         },
@@ -109,24 +109,24 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
             },
         },
         sorts: [{
-            property: 'Log in',
+            property: 'Created time',
             direction: 'descending'
         }]
     });
 
     return response.results.map((page) => {
         const anyPage = page as any;
-        const checkInDate = anyPage.properties['Log in']?.date?.start;
-        const checkOutDate = anyPage.properties['Log out']?.date?.start;
+        const checkInText = anyPage.properties['Log in']?.rich_text ? getPlainText(anyPage.properties['Log in'].rich_text) : null;
+        const checkOutText = anyPage.properties['Log out']?.rich_text ? getPlainText(anyPage.properties['Log out'].rich_text) : null;
 
         const onlineStatus = anyPage.properties.Status?.select?.name;
-        const currentStatus = checkOutDate ? 'Offline' : onlineStatus;
+        const currentStatus = checkOutText ? 'Offline' : onlineStatus;
 
         return {
             id: page.id,
-            name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : (anyPage.properties.Name?.rich_text ? getPlainText(anyPage.properties.Name.rich_text) : 'Unnamed'),
-            checkIn: checkInDate ? new Date(checkInDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
-            checkOut: checkOutDate ? new Date(checkOutDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
+            name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : 'Unnamed',
+            checkIn: checkInText,
+            checkOut: checkOutText,
             status: currentStatus,
             notes: anyPage.properties.Notes?.rich_text ? getPlainText(anyPage.properties.Notes.rich_text) : null,
         };
