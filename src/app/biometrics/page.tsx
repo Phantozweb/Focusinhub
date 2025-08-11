@@ -110,8 +110,8 @@ export default function BiometricsPage() {
                 <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Check In</TableHead>
-                    <TableHead>Check Out</TableHead>
+                    <TableHead>Log In</TableHead>
+                    <TableHead>Log Out</TableHead>
                     <TableHead>Notes</TableHead>
                 </TableRow>
                 </TableHeader>

@@ -65,12 +65,13 @@ export async function checkInUser(name: string): Promise<string> {
     if (!biometricsDatabaseId) {
         throw new Error('Notion biometrics database ID is not configured.');
     }
+    const now = new Date().toISOString();
     const response = await notion.pages.create({
         parent: { database_id: biometricsDatabaseId },
         properties: {
             'Name': { title: [{ text: { content: name } }] },
-            'Check In': { date: { start: new Date().toISOString() } },
-            'Status': { select: { name: 'Online' } },
+            'Date': { date: { start: now.split('T')[0] } }, // Just the date part
+            'Log in': { date: { start: now } },
         },
     });
     return response.id;
@@ -83,8 +84,7 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
     await notion.pages.update({
         page_id: pageId,
         properties: {
-            'Check Out': { date: { start: new Date().toISOString() } },
-            'Status': { select: { name: 'Offline' } },
+            'Log out': { date: { start: new Date().toISOString() } },
             'Notes': { rich_text: [{ text: { content: notes } }] },
         },
     });
@@ -97,22 +97,22 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
     const response = await notion.databases.query({
         database_id: biometricsDatabaseId,
         sorts: [{
-            property: 'Check In',
+            property: 'Log in',
             direction: 'descending'
         }]
     });
 
     return response.results.map((page) => {
         const anyPage = page as any;
-        const checkInDate = anyPage.properties['Check In']?.date?.start;
-        const checkOutDate = anyPage.properties['Check Out']?.date?.start;
+        const checkInDate = anyPage.properties['Log in']?.date?.start;
+        const checkOutDate = anyPage.properties['Log out']?.date?.start;
 
         return {
             id: page.id,
             name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : 'Unnamed',
             checkIn: checkInDate ? new Date(checkInDate).toLocaleString() : null,
             checkOut: checkOutDate ? new Date(checkOutDate).toLocaleString() : null,
-            status: anyPage.properties.Status?.select?.name || 'Offline',
+            status: checkOutDate ? 'Offline' : 'Online',
             notes: anyPage.properties.Notes?.rich_text ? getPlainText(anyPage.properties.Notes.rich_text) : null,
         };
     });
