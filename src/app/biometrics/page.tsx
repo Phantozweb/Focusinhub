@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, User, ListChecks, Signal, SignalLow, Users, Briefcase, PersonStanding, RefreshCw } from 'lucide-react';
+import { Loader2, User, ListChecks, Signal, SignalLow, Users, Briefcase, PersonStanding, RefreshCw, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BiometricRecord, getBiometricData } from '@/services/notion';
 import { Button } from '@/components/ui/button';
@@ -148,6 +148,7 @@ export default function BiometricsPage() {
                     <TableHead>Status</TableHead>
                     <TableHead>Log In</TableHead>
                     <TableHead>Log Out</TableHead>
+                    <TableHead>Total Hours</TableHead>
                     <TableHead>Notes</TableHead>
                 </TableRow>
                 </TableHeader>
@@ -163,6 +164,7 @@ export default function BiometricsPage() {
                     </TableCell>
                     <TableCell>{record.checkIn || 'N/A'}</TableCell>
                     <TableCell>{record.checkOut || 'N/A'}</TableCell>
+                    <TableCell className="flex items-center gap-2"><Clock size={12}/>{record.totalHours || 'N/A'}</TableCell>
                     <TableCell className="max-w-xs truncate">{record.notes || 'N/A'}</TableCell>
                     </TableRow>
                 ))}

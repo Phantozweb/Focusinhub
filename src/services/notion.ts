@@ -24,6 +24,7 @@ export interface BiometricRecord {
   checkOut: string | null;
   status: string | null;
   notes: string | null;
+  totalHours: string | null;
 }
 
 // A helper function to get the text from a Notion rich text array.
@@ -82,12 +83,51 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
     if (!biometricsDatabaseId) {
         throw new Error('Notion biometrics database ID is not configured.');
     }
+
+    // First, fetch the page to get the 'Log in' time
+    const pageResponse = await notion.pages.retrieve({ page_id: pageId });
+    const anyPage = pageResponse as any;
+    const checkInText = anyPage.properties['Log in']?.rich_text ? getPlainText(anyPage.properties['Log in'].rich_text) : null;
+    const checkOutTime = new Date();
+    const checkOutText = checkOutTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
+
+    let totalHoursText = null;
+
+    if (checkInText) {
+        try {
+            // Parse check-in time (e.g., "10:00 AM")
+            const [time, modifier] = checkInText.split(' ');
+            let [hours, minutes] = time.split(':').map(Number);
+            if (modifier === 'PM' && hours < 12) {
+                hours += 12;
+            }
+            if (modifier === 'AM' && hours === 12) {
+                hours = 0;
+            }
+            const checkInDate = new Date();
+            checkInDate.setHours(hours, minutes, 0, 0);
+
+            // Calculate duration
+            const diffMs = checkOutTime.getTime() - checkInDate.getTime();
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            
+            totalHoursText = `${diffHours} hr ${diffMins} min`;
+
+        } catch (e) {
+            console.error("Could not calculate total hours", e);
+            totalHoursText = "Error";
+        }
+    }
+
+
     await notion.pages.update({
         page_id: pageId,
         properties: {
-            'Log out': { rich_text: [{ text: { content: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) } }] },
+            'Log out': { rich_text: [{ text: { content: checkOutText } }] },
             'Notes': { rich_text: [{ text: { content: notes } }] },
             'Status': { select: { name: 'Offline' } },
+            'Total hours': { rich_text: [{ text: { content: totalHoursText || 'N/A' } }]},
         },
     });
 }
@@ -117,6 +157,7 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
         const anyPage = page as any;
         const checkInText = anyPage.properties['Log in']?.rich_text ? getPlainText(anyPage.properties['Log in'].rich_text) : null;
         const checkOutText = anyPage.properties['Log out']?.rich_text ? getPlainText(anyPage.properties['Log out'].rich_text) : null;
+        const totalHours = anyPage.properties['Total hours']?.rich_text ? getPlainText(anyPage.properties['Total hours'].rich_text) : null;
 
         const onlineStatus = anyPage.properties.Status?.select?.name;
         const currentStatus = checkOutText ? 'Offline' : onlineStatus;
@@ -128,6 +169,7 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
             checkOut: checkOutText,
             status: currentStatus,
             notes: anyPage.properties.Notes?.rich_text ? getPlainText(anyPage.properties.Notes.rich_text) : null,
+            totalHours: totalHours,
         };
     });
 }
