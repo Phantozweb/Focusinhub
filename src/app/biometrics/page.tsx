@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, User, ListChecks, Signal, SignalLow, Users, Briefcase, Wand, PersonStanding, RefreshCw } from 'lucide-react';
+import { Loader2, User, ListChecks, Signal, SignalLow, Users, Briefcase, PersonStanding, RefreshCw } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BiometricRecord, getBiometricData } from '@/services/notion';
 import { Button } from '@/components/ui/button';

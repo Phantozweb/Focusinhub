@@ -70,7 +70,7 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
         parent: { database_id: biometricsDatabaseId },
         properties: {
             'Name': { title: [{ text: { content: name } }] },
-            'Date': { date: { start: now.split('T')[0] } }, // Just the date part
+            'Date': { date: { start: now.split('T')[0] } },
             'Log in': { date: { start: now } },
             'Status': { select: { name: status } },
         },
@@ -119,15 +119,15 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
         const checkInDate = anyPage.properties['Log in']?.date?.start;
         const checkOutDate = anyPage.properties['Log out']?.date?.start;
 
-        const isOnline = !checkOutDate;
         const onlineStatus = anyPage.properties.Status?.select?.name;
+        const currentStatus = checkOutDate ? 'Offline' : onlineStatus;
 
         return {
             id: page.id,
             name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : 'Unnamed',
-            checkIn: checkInDate ? new Date(checkInDate).toLocaleTimeString() : null,
-            checkOut: checkOutDate ? new Date(checkOutDate).toLocaleTimeString() : null,
-            status: isOnline ? onlineStatus : 'Offline',
+            checkIn: checkInDate ? new Date(checkInDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
+            checkOut: checkOutDate ? new Date(checkOutDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
+            status: currentStatus,
             notes: anyPage.properties.Notes?.rich_text ? getPlainText(anyPage.properties.Notes.rich_text) : null,
         };
     });
