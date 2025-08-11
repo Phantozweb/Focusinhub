@@ -45,7 +45,7 @@ export async function getTasksFromNotion(): Promise<NotionTask[]> {
     
     return {
       id: page.id,
-      title: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : 'Untitled',
+      title: anyPage.properties['Task name']?.title ? getPlainText(anyPage.properties['Task name'].title) : 'Untitled',
       status: anyPage.properties.Status?.select?.name || 'No Status',
       assignee: anyPage.properties.Assignee?.people ? getAssignee(anyPage.properties.Assignee.people) : 'Unassigned',
       createdTime: new Date(page.created_time).toLocaleDateString(),
