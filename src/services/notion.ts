@@ -148,7 +148,7 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
             },
         },
         sorts: [{
-            property: 'created_time',
+            timestamp: 'created_time',
             direction: 'descending'
         }]
     });
