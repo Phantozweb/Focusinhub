@@ -108,15 +108,20 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     }
 
     let webhookUrl = '';
+    const enabledWebhooks = ['company-announcements', 'project-roadmap', 'product-manuals', 'task-board'];
+    
     if (selectedChannel === 'company-announcements') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ANNOUNCEMENTS!;
     } else if (selectedChannel === 'project-roadmap') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ROADMAP!;
     } else if (selectedChannel === 'product-manuals') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_PRODUCT_MANUALS!;
+    } else if (selectedChannel === 'task-board') {
+        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TASK_BOARD!;
     }
 
-    if (!webhookUrl && (selectedChannel === 'company-announcements' || selectedChannel === 'project-roadmap' || selectedChannel === 'product-manuals')) {
+
+    if (!webhookUrl && enabledWebhooks.includes(selectedChannel)) {
       toast({ title: 'Webhook URL not configured', description: `Webhook for '${selectedChannel}' is not set.`, variant: 'destructive' });
       return;
     }
