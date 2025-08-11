@@ -112,9 +112,11 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ANNOUNCEMENTS!;
     } else if (selectedChannel === 'project-roadmap') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ROADMAP!;
+    } else if (selectedChannel === 'product-manuals') {
+        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_PRODUCT_MANUALS!;
     }
 
-    if (!webhookUrl && (selectedChannel === 'company-announcements' || selectedChannel === 'project-roadmap')) {
+    if (!webhookUrl && (selectedChannel === 'company-announcements' || selectedChannel === 'project-roadmap' || selectedChannel === 'product-manuals')) {
       toast({ title: 'Webhook URL not configured', description: `Webhook for '${selectedChannel}' is not set.`, variant: 'destructive' });
       return;
     }
@@ -146,7 +148,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
               {
                 title: title,
                 description: messageToSend,
-                color: 6940250, // Muted green accent
+                color: 15844367, // Muted green accent
                 timestamp: new Date().toISOString(),
                 footer: {
                   text: `Sent by ${senderName} at ${sentAt}`,
