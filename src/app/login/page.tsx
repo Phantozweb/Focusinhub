@@ -30,8 +30,9 @@ export default function Login() {
 
     if (userId === 'Jana@Ceo' && password === 'Janarthan@09876') {
       const user = { username: 'Jana@Ceo' };
+      const notionUsername = 'Janarthan'; 
       try {
-        const notionPageId = await checkInUser(user.username, status);
+        const notionPageId = await checkInUser(notionUsername, status);
         const sessionData = { ...user, notionPageId };
         localStorage.setItem('user', JSON.stringify(sessionData));
         router.push('/');

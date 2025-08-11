@@ -72,7 +72,7 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
         properties: {
             'Name': { title: [{ text: { content: name } }] },
             'Date': { date: { start: now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) } },
-            'Log in': { rich_text: [{ text: { content: now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) } }] },
+            'Log in': { rich_text: [{ text: { content: now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) } }] },
             'Status': { select: { name: status } },
         },
     });
@@ -89,7 +89,7 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
     const anyPage = pageResponse as any;
     const checkInText = anyPage.properties['Log in']?.rich_text ? getPlainText(anyPage.properties['Log in'].rich_text) : null;
     const checkOutTime = new Date();
-    const checkOutText = checkOutTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
+    const checkOutText = checkOutTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
 
     let totalHoursText = null;
 
@@ -98,10 +98,10 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
             // Parse check-in time (e.g., "10:00 AM")
             const [time, modifier] = checkInText.split(' ');
             let [hours, minutes] = time.split(':').map(Number);
-            if (modifier === 'PM' && hours < 12) {
+            if (modifier.toLowerCase() === 'pm' && hours < 12) {
                 hours += 12;
             }
-            if (modifier === 'AM' && hours === 12) {
+            if (modifier.toLowerCase() === 'am' && hours === 12) {
                 hours = 0;
             }
             const checkInDate = new Date();
@@ -109,10 +109,17 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
 
             // Calculate duration
             const diffMs = checkOutTime.getTime() - checkInDate.getTime();
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-            
-            totalHoursText = `${diffHours} hr ${diffMins} min`;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMins = Math.floor(diffSec / 60);
+            const diffHours = Math.floor(diffMins / 60);
+
+            if (diffHours > 0) {
+                totalHoursText = `${diffHours} hr ${diffMins % 60} min`;
+            } else if (diffMins > 0) {
+                totalHoursText = `${diffMins} min ${diffSec % 60} sec`;
+            } else {
+                totalHoursText = `${diffSec} sec`;
+            }
 
         } catch (e) {
             console.error("Could not calculate total hours", e);

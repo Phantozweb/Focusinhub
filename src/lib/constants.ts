@@ -11,11 +11,17 @@ export const channelCategories = [
     ],
   },
   {
-    name: 'Integrations',
-    icon: '🔌',
+    name: 'Team Analytics',
+    icon: '📊',
     channels: [
-      { name: 'notion-tasks', icon: '📝', isPrivate: false, isLeadershipOnly: false, description: "View tasks from Notion." },
       { name: 'biometrics', icon: '🔬', isPrivate: true, isLeadershipOnly: true, description: "View team check-in and check-out data." },
+    ]
+  },
+  {
+    name: 'Task Management',
+    icon: '📝',
+    channels: [
+        { name: 'notion-tasks', icon: '✅', isPrivate: false, isLeadershipOnly: false, description: "View tasks from Notion." },
     ]
   },
   {
