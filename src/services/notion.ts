@@ -69,7 +69,7 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
     const response = await notion.pages.create({
         parent: { database_id: biometricsDatabaseId },
         properties: {
-            'Name': { title: [{ text: { content: name } }] },
+            'Name': { rich_text: [{ text: { content: name } }] },
             'Date': { date: { start: now.split('T')[0] } },
             'Log in': { date: { start: now } },
             'Status': { select: { name: status } },
@@ -124,7 +124,7 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
 
         return {
             id: page.id,
-            name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : 'Unnamed',
+            name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : (anyPage.properties.Name?.rich_text ? getPlainText(anyPage.properties.Name.rich_text) : 'Unnamed'),
             checkIn: checkInDate ? new Date(checkInDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
             checkOut: checkOutDate ? new Date(checkOutDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
             status: currentStatus,
