@@ -22,7 +22,7 @@ export interface BiometricRecord {
   name: string;
   checkIn: string | null;
   checkOut: string | null;
-  status: 'Online' | 'Offline';
+  status: string | null;
   notes: string | null;
 }
 
@@ -61,7 +61,7 @@ export async function getTasksFromNotion(): Promise<NotionTask[]> {
   });
 }
 
-export async function checkInUser(name: string): Promise<string> {
+export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promise<string> {
     if (!biometricsDatabaseId) {
         throw new Error('Notion biometrics database ID is not configured.');
     }
@@ -72,6 +72,7 @@ export async function checkInUser(name: string): Promise<string> {
             'Name': { title: [{ text: { content: name } }] },
             'Date': { date: { start: now.split('T')[0] } }, // Just the date part
             'Log in': { date: { start: now } },
+            'Status': { select: { name: status } },
         },
     });
     return response.id;
@@ -107,12 +108,15 @@ export async function getBiometricData(): Promise<BiometricRecord[]> {
         const checkInDate = anyPage.properties['Log in']?.date?.start;
         const checkOutDate = anyPage.properties['Log out']?.date?.start;
 
+        const isOnline = !checkOutDate;
+        const onlineStatus = anyPage.properties.Status?.select?.name;
+
         return {
             id: page.id,
             name: anyPage.properties.Name?.title ? getPlainText(anyPage.properties.Name.title) : 'Unnamed',
             checkIn: checkInDate ? new Date(checkInDate).toLocaleString() : null,
             checkOut: checkOutDate ? new Date(checkOutDate).toLocaleString() : null,
-            status: checkOutDate ? 'Offline' : 'Online',
+            status: isOnline ? onlineStatus : 'Offline',
             notes: anyPage.properties.Notes?.rich_text ? getPlainText(anyPage.properties.Notes.rich_text) : null,
         };
     });

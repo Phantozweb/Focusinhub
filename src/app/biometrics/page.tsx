@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, User, ListChecks, Signal, SignalLow, Users } from 'lucide-react';
+import { Loader2, User, ListChecks, Signal, SignalLow, Users, Briefcase, Wand, PersonStanding } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BiometricRecord, getBiometricData } from '@/services/notion';
 
@@ -45,16 +45,31 @@ export default function BiometricsPage() {
 
   const getStatusVariant = (status: string | null) => {
     switch (status) {
-      case 'Online':
+      case 'Work':
         return 'default';
-      case 'Offline':
+      case 'Visit':
         return 'secondary';
+      case 'Offline':
+        return 'outline';
       default:
         return 'outline';
     }
   };
+  
+  const getStatusIcon = (status: string | null) => {
+      switch (status) {
+          case 'Work':
+              return <Briefcase size={12} />;
+          case 'Visit':
+              return <PersonStanding size={12} />;
+          case 'Offline':
+              return <SignalLow size={12} />;
+          default:
+              return <Signal size={12} />;
+      }
+  }
 
-  const onlineUsers = records.filter(r => r.status === 'Online').length;
+  const onlineUsers = records.filter(r => r.status !== 'Offline').length;
   const totalRecords = records.length;
 
 
@@ -121,7 +136,7 @@ export default function BiometricsPage() {
                     <TableCell className="font-medium">{record.name}</TableCell>
                     <TableCell>
                         <Badge variant={getStatusVariant(record.status)} className="gap-1">
-                            {record.status === 'Online' ? <Signal size={12} /> : <SignalLow size={12}/>}
+                            {getStatusIcon(record.status)}
                             {record.status || 'N/A'}
                         </Badge>
                     </TableCell>

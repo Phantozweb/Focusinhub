@@ -9,18 +9,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Eye, Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { checkInUser } from '@/services/notion';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function Login() {
   const router = useRouter();
   const { toast } = useToast();
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
+  const [status, setStatus] = useState<'Work' | 'Visit' | null>(null);
 
   const handleLogin = async () => {
+    if (!status) {
+        toast({
+            title: 'Status Required',
+            description: 'Please select if you are here for work or a visit.',
+            variant: 'destructive',
+        });
+        return;
+    }
+
     if (userId === 'Jana@Ceo' && password === 'Janarthan@09876') {
       const user = { username: 'Jana@Ceo' };
       try {
-        const notionPageId = await checkInUser(user.username);
+        const notionPageId = await checkInUser(user.username, status);
         const sessionData = { ...user, notionPageId };
         localStorage.setItem('user', JSON.stringify(sessionData));
         router.push('/');
@@ -88,6 +99,22 @@ export default function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Reason for Visit</Label>
+                        <RadioGroup
+                            onValueChange={(value: 'Work' | 'Visit') => setStatus(value)}
+                            className="flex gap-4 pt-1"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Work" id="work" />
+                                <Label htmlFor="work">Work</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Visit" id="visit" />
+                                <Label htmlFor="visit">Visit</Label>
+                            </div>
+                        </RadioGroup>
                     </div>
                     <Button type="submit" className="w-full !mt-6">
                         Log In
