@@ -11,6 +11,13 @@ export const channelCategories = [
     ],
   },
   {
+    name: 'Integrations',
+    icon: '🔌',
+    channels: [
+      { name: 'notion-tasks', icon: '📝', isPrivate: false, isLeadershipOnly: false, description: "View tasks from Notion." },
+    ]
+  },
+  {
     name: 'Operations & Projects',
     icon: '📂',
     channels: [

@@ -9,9 +9,11 @@ import {
 import { SidebarNav } from '@/components/sidebar-nav';
 import { UserNav } from '@/components/user-nav';
 import { Dashboard } from '@/components/dashboard';
-import { Eye } from 'lucide-react';
+import { Eye, Book, ListTodo } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import NotionPage from './notion/page';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const router = useRouter();
@@ -34,6 +36,13 @@ export default function Home() {
   }
 
   const isCeo = user?.username === 'Jana@Ceo';
+  
+  const renderContent = () => {
+    if (selectedChannel === 'notion-tasks') {
+      return <NotionPage />;
+    }
+    return <Dashboard selectedChannel={selectedChannel} />;
+  };
 
   return (
     <>
@@ -68,7 +77,7 @@ export default function Home() {
            </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6">
-          <Dashboard selectedChannel={selectedChannel} />
+          {renderContent()}
         </main>
       </SidebarInset>
     </>
