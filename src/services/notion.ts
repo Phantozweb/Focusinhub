@@ -5,9 +5,15 @@
 
 import { Client } from '@notionhq/client';
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
-const taskDatabaseId = process.env.NOTION_DATABASE_ID!;
-const biometricsDatabaseId = process.env.NOTION_BIOMETRICS_DATABASE_ID!;
+// IMPORTANT: Replace these placeholder values with your actual Notion credentials.
+const NOTION_API_KEY = 'REPLACE_WITH_YOUR_NOTION_API_KEY';
+const NOTION_DATABASE_ID = 'REPLACE_WITH_YOUR_TASK_DATABASE_ID';
+const NOTION_BIOMETRICS_DATABASE_ID = 'REPLACE_WITH_YOUR_BIOMETRICS_DATABASE_ID';
+
+
+const notion = new Client({ auth: NOTION_API_KEY });
+const taskDatabaseId = NOTION_DATABASE_ID;
+const biometricsDatabaseId = NOTION_BIOMETRICS_DATABASE_ID;
 
 export interface NotionTask {
   id: string;
