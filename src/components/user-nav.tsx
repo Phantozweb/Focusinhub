@@ -24,6 +24,7 @@ import { checkOutUser } from "@/services/notion";
 type UserSession = {
     username: string;
     notionPageId: string;
+    checkInTime?: string;
 };
 
 export function UserNav() {
@@ -75,7 +76,18 @@ export function UserNav() {
     };
 
 
-    const isCeo = user?.username === 'Jana@Ceo';
+    const getUserDisplayName = () => {
+        if (!user) return '';
+        if (user.username === 'Jana@Ceo') return 'Janarthan';
+        if (user.username === 'Hariharan@Focusin01') return 'Hariharan';
+        return user.username;
+    }
+
+    const getUserRole = () => {
+        if (!user) return '';
+        if (user.username === 'Jana@Ceo') return 'Founder & CEO';
+        return 'Team Member';
+    }
 
   return (
     <>
@@ -92,9 +104,9 @@ export function UserNav() {
                 <>
                     <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{isCeo ? 'Janarthan' : user.username}</p>
+                        <p className="text-sm font-medium leading-none">{getUserDisplayName()}</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                        {isCeo ? 'Founder & CEO' : 'Welcome back!'}
+                        {getUserRole()}
                         </p>
                     </div>
                     </DropdownMenuLabel>

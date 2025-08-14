@@ -16,7 +16,7 @@ export default function Login() {
   const { toast } = useToast();
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState<'Work' | 'Visit' | null>(null);
+  const [status, setStatus] = useState<'Work' | 'Visit' | null>('Work');
 
   const handleLogin = async () => {
     if (!status) {
@@ -28,12 +28,22 @@ export default function Login() {
         return;
     }
 
+    let user: { username: string } | null = null;
+    let notionUsername: string | null = null;
+
     if (userId === 'Jana@Ceo' && password === 'Janarthan@09876') {
-      const user = { username: 'Jana@Ceo' };
-      const notionUsername = 'Janarthan'; 
+        user = { username: 'Jana@Ceo' };
+        notionUsername = 'Janarthan';
+    } else if (userId === 'Hariharan@Focusin01' && password === 'h@rih@ran0789') {
+        user = { username: 'Hariharan@Focusin01' };
+        notionUsername = 'Hariharan';
+    }
+
+    if (user && notionUsername) {
       try {
         const notionPageId = await checkInUser(notionUsername, status);
-        const sessionData = { ...user, notionPageId };
+        const checkInTime = new Date().toISOString();
+        const sessionData = { ...user, notionPageId, checkInTime };
         localStorage.setItem('user', JSON.stringify(sessionData));
         router.push('/');
       } catch (error) {
@@ -104,6 +114,7 @@ export default function Login() {
                     <div className="space-y-2">
                         <Label>Reason for Visit</Label>
                         <RadioGroup
+                            value={status ?? 'Work'}
                             onValueChange={(value: 'Work' | 'Visit') => setStatus(value)}
                             className="flex gap-4 pt-1"
                         >

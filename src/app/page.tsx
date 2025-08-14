@@ -14,30 +14,50 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NotionPage from './notion/page';
 import BiometricsPage from './biometrics/page';
+import { UserDashboard } from '@/components/user-dashboard';
+
+type UserSession = {
+  username: string;
+  notionPageId: string;
+  checkInTime: string;
+}
 
 export default function Home() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{ username: string } | null>(null);
+  const [user, setUser] = useState<UserSession | null>(null);
   const [selectedChannel, setSelectedChannel] = useState('company-announcements');
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Failed to parse user from localStorage", error);
+        // Clear broken user data and redirect to login
+        localStorage.removeItem('user');
+        router.push('/login');
+      }
     } else {
       router.push('/login');
     }
   }, [router]);
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return null; // Or a loading spinner
   }
 
   const isCeo = user?.username === 'Jana@Ceo';
   
   const renderContent = () => {
+    if (!isCeo) {
+        return <UserDashboard user={user} />;
+    }
+    
+    // CEO View
     if (selectedChannel === 'notion-tasks') {
       return <NotionPage />;
     }
@@ -46,6 +66,13 @@ export default function Home() {
     }
     return <Dashboard selectedChannel={selectedChannel} />;
   };
+
+  const getWelcomeMessage = () => {
+      if (!user) return "Welcome!";
+      if (user.username === 'Jana@Ceo') return "Welcome, Founder!";
+      if (user.username === 'Hariharan@Focusin01') return "Welcome, Hariharan!";
+      return `Welcome, ${user.username}!`;
+  }
 
   return (
     <>
@@ -71,7 +98,7 @@ export default function Home() {
             <SidebarTrigger />
              <div className="hidden items-center gap-2 md:flex">
                 <h1 className="font-headline text-lg font-semibold">
-                  {isCeo ? "Welcome, Founder!" : `Welcome, ${user?.username}!`}
+                  {getWelcomeMessage()}
                 </h1>
             </div>
           </div>
