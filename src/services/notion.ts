@@ -7,9 +7,9 @@ import { Client } from '@notionhq/client';
 
 // WARNING: Storing secrets directly in the code is not recommended.
 // Replace these placeholder values with your actual Notion credentials.
-const NOTION_API_KEY = 'YOUR_NOTION_API_KEY_HERE';
-const NOTION_DATABASE_ID = 'YOUR_NOTION_TASKS_DATABASE_ID_HERE';
-const NOTION_BIOMETRICS_DATABASE_ID = 'YOUR_NOTION_BIOMETRICS_DATABASE_ID_HERE';
+const NOTION_API_KEY = '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';
+const NOTION_DATABASE_ID = '24c34593568e40e78869fd26bcd0150c';
+const NOTION_BIOMETRICS_DATABASE_ID = '24c34593568e40e78869fd26bcd0150c';
 
 
 const notion = new Client({ auth: NOTION_API_KEY });
@@ -48,7 +48,7 @@ function getAssignee(people: any[]): string | null {
 }
 
 export async function getTasksFromNotion(): Promise<NotionTask[]> {
-  if (!taskDatabaseId) {
+  if (!taskDatabaseId || !NOTION_API_KEY) {
     throw new Error('Notion database ID is not configured.');
   }
 
