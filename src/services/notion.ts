@@ -5,10 +5,9 @@
 
 import { Client } from '@notionhq/client';
 
-// IMPORTANT: Replace these placeholder values with your actual Notion credentials.
-const NOTION_API_KEY = 'REPLACE_WITH_YOUR_NOTION_API_KEY';
-const NOTION_DATABASE_ID = 'REPLACE_WITH_YOUR_TASK_DATABASE_ID';
-const NOTION_BIOMETRICS_DATABASE_ID = 'REPLACE_WITH_YOUR_BIOMETRICS_DATABASE_ID';
+const NOTION_API_KEY = process.env.NOTION_API_KEY;
+const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
+const NOTION_BIOMETRICS_DATABASE_ID = process.env.NOTION_BIOMETRICS_DATABASE_ID;
 
 
 const notion = new Client({ auth: NOTION_API_KEY });
@@ -69,8 +68,8 @@ export async function getTasksFromNotion(): Promise<NotionTask[]> {
 }
 
 export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promise<string> {
-    if (!biometricsDatabaseId) {
-        throw new Error('Notion biometrics database ID is not configured.');
+    if (!biometricsDatabaseId || !NOTION_API_KEY) {
+        throw new Error('Notion API Key or Biometrics Database ID is not configured.');
     }
     const now = new Date();
     const response = await notion.pages.create({
@@ -86,8 +85,8 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
 }
 
 export async function checkOutUser(pageId: string, notes: string): Promise<void> {
-    if (!biometricsDatabaseId) {
-        throw new Error('Notion biometrics database ID is not configured.');
+    if (!biometricsDatabaseId || !NOTION_API_KEY) {
+        throw new Error('Notion API Key or Biometrics Database ID is not configured.');
     }
 
     // First, fetch the page to get the 'Log in' time
@@ -146,8 +145,8 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
 }
 
 export async function getBiometricData(): Promise<BiometricRecord[]> {
-    if (!biometricsDatabaseId) {
-        throw new Error('Notion biometrics database ID is not configured.');
+    if (!biometricsDatabaseId || !NOTION_API_KEY) {
+        throw new Error('Notion API Key or Biometrics Database ID is not configured.');
     }
     
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
