@@ -74,11 +74,17 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
         throw new Error('Notion API Key or Biometrics Database ID is not configured.');
     }
     const now = new Date();
+    // Format date to YYYY-MM-DD for Notion API
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+
     const response = await notion.pages.create({
         parent: { database_id: biometricsDatabaseId },
         properties: {
             'Name': { title: [{ text: { content: name } }] },
-            'Date': { date: { start: now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) } },
+            'Date': { date: { start: formattedDate } },
             'Log in': { rich_text: [{ text: { content: now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) } }] },
             'Status': { select: { name: status } },
         },
