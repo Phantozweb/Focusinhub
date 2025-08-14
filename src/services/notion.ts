@@ -8,7 +8,7 @@ import { Client } from '@notionhq/client';
 // WARNING: Storing secrets directly in the code is not recommended.
 // Replace these placeholder values with your actual Notion credentials.
 const NOTION_API_KEY = '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';
-const NOTION_DATABASE_ID = '24c34593568e40e78869fd26bcd0150c';
+const NOTION_DATABASE_ID = '24c34593568e8030ad44e64d32ed49a7';
 const NOTION_BIOMETRICS_DATABASE_ID = '24c34593568e40e78869fd26bcd0150c';
 
 
