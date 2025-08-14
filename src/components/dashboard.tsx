@@ -13,12 +13,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, Loader2, Wand2, ThumbsUp, User, Pencil, Send } from 'lucide-react';
+import { Bot, Loader2, Wand2, ThumbsUp, User, Pencil, Send, Image as ImageIcon, Paperclip, X } from 'lucide-react';
 import { draftMessage, DraftMessageOutput, DraftMessageInput } from '@/ai/flows/draft-message-flow';
 import { allChannels } from '@/lib/constants';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from '@/lib/utils';
 import { Label } from './ui/label';
+import { Input } from './ui/input';
 
 type UserProfile = {
     username: string;
@@ -40,9 +41,12 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [currentDraft, setCurrentDraft] = useState<DraftMessageOutput | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+  const [imageUrl, setImageUrl] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+
   const [user, setUser] = useState<UserProfile | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
 
   useEffect(() => {
@@ -120,7 +124,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     } else if (selectedChannel === 'task-board') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TASK_BOARD!;
     } else if (selectedChannel === 'team-intros') {
-        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TEAM_INTROS!;
+        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TEAM_INTROs!;
     }
 
 
@@ -143,27 +147,28 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     const senderName = isCeo ? 'Janarthan (Founder & CEO)' : user?.username || 'Unknown User';
     const sentAt = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
+    const embed = {
+        title: title,
+        description: messageToSend,
+        color: 15844367, // Muted green accent
+        timestamp: new Date().toISOString(),
+        footer: {
+          text: `Sent by ${senderName} at ${sentAt}`,
+        },
+        image: imageUrl ? { url: imageUrl } : undefined,
+    };
+
+    const formData = new FormData();
+    formData.append('payload_json', JSON.stringify({ embeds: [embed] }));
+    if (file) {
+        formData.append('file1', file);
+    }
 
     startSending(async () => {
       try {
         const response = await fetch(webhookUrl, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            embeds: [
-              {
-                title: title,
-                description: messageToSend,
-                color: 15844367, // Muted green accent
-                timestamp: new Date().toISOString(),
-                footer: {
-                  text: `Sent by ${senderName} at ${sentAt}`,
-                },
-              },
-            ],
-          }),
+          body: formData,
         });
 
         if (response.ok) {
@@ -172,6 +177,9 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
           setChatHistory([]);
           setCurrentDraft(null);
           setIsEditing(false);
+          setImageUrl('');
+          setFile(null);
+          if (fileInputRef.current) fileInputRef.current.value = '';
         } else {
           const errorText = await response.text();
           toast({ title: 'Error Sending Message', description: `Discord API returned an error: ${errorText}`, variant: 'destructive' });
@@ -242,7 +250,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
             {currentDraft && isEditing && (
                 <div className="w-full space-y-2">
                     <Label htmlFor="edit-title">Title</Label>
-                    <Textarea 
+                    <Input 
                         id="edit-title" 
                         value={currentDraft.title}
                         onChange={(e) => setCurrentDraft(d => d ? {...d, title: e.target.value} : null)}
@@ -257,6 +265,48 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
                     />
                 </div>
             )}
+            <div className="w-full space-y-2">
+                <Label htmlFor="image-url" className="flex items-center gap-2">
+                    <ImageIcon /> Embed Image URL (Optional)
+                </Label>
+                <Input
+                    id="image-url"
+                    type="text"
+                    placeholder="https://your-image-url.com/image.png"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    disabled={isSending}
+                />
+            </div>
+             <div className="w-full space-y-2">
+                <Label htmlFor="file-upload" className="flex items-center gap-2">
+                    <Paperclip /> Attach File (Optional)
+                </Label>
+                {file ? (
+                    <div className="flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground truncate">{file.name}</p>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => {
+                                setFile(null);
+                                if (fileInputRef.current) fileInputRef.current.value = '';
+                            }}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ) : (
+                    <Input
+                        id="file-upload"
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                        disabled={isSending}
+                    />
+                )}
+            </div>
             <div className='w-full flex items-center gap-2'>
               <Textarea
                   id="message"
@@ -270,9 +320,9 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
                         handleSendToAI();
                     }
                   }}
-                  disabled={isDrafting}
+                  disabled={isDrafting || isSending}
               />
-              <Button onClick={handleSendToAI} disabled={!chatInput || isDrafting}>
+              <Button onClick={handleSendToAI} disabled={!chatInput || isDrafting || isSending}>
                 {isDrafting ? <Loader2 className="animate-spin" /> : (chatHistory.length === 0 ? <Wand2 /> : <Send />)} 
                 <span className='sr-only'>{chatHistory.length === 0 ? 'Draft with AI' : 'Send'}</span>
               </Button>
@@ -288,3 +338,5 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     </div>
   );
 }
+
+    
