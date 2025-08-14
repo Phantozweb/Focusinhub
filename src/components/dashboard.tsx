@@ -112,34 +112,23 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
       return;
     }
 
-    let webhookUrl = '';
-    const enabledWebhooks = ['company-announcements', 'project-roadmap', 'product-manuals', 'task-board', 'team-intros'];
+    const webhooks: { [key: string]: string } = {
+        'company-announcements': 'https://discord.com/api/webhooks/1234567890/your-announcements-webhook-url',
+        'project-roadmap': 'https://discord.com/api/webhooks/1234567890/your-roadmap-webhook-url',
+        'product-manuals': 'https://discord.com/api/webhooks/1234567890/your-manuals-webhook-url',
+        'task-board': 'https://discord.com/api/webhooks/1234567890/your-taskboard-webhook-url',
+        'team-intros': 'https://discord.com/api/webhooks/1405433952680017980/Ezb_7Ij5aGImjcil1QQR9WRORO5zy1usnr-WDchsQJ0XV9SvgKdGLC9NRfBFk8_Jeqia'
+    };
     
-    if (selectedChannel === 'company-announcements') {
-        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ANNOUNCEMENTS!;
-    } else if (selectedChannel === 'project-roadmap') {
-        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ROADMAP!;
-    } else if (selectedChannel === 'product-manuals') {
-        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_PRODUCT_MANUALS!;
-    } else if (selectedChannel === 'task-board') {
-        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TASK_BOARD!;
-    } else if (selectedChannel === 'team-intros') {
-        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TEAM_INTROs!;
-    }
+    const webhookUrl = webhooks[selectedChannel];
 
-
-    if (!webhookUrl && enabledWebhooks.includes(selectedChannel)) {
-      toast({ title: 'Webhook URL not configured', description: `Webhook for '${selectedChannel}' is not set.`, variant: 'destructive' });
+    if (!webhookUrl) {
+      toast({ title: 'Messaging not supported', description: `Messaging to '${selectedChannel}' is not supported yet or the webhook is not configured.`, variant: 'destructive' });
       return;
     }
     
     if (!allChannels.includes(selectedChannel)) {
       toast({ title: 'Invalid Channel', description: `The channel '${selectedChannel}' is not a valid channel.`, variant: 'destructive' });
-      return;
-    }
-    
-    if(!webhookUrl) {
-      toast({ title: 'Messaging not supported', description: `Messaging to '${selectedChannel}' is not supported yet.`, variant: 'destructive' });
       return;
     }
 
@@ -338,5 +327,3 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     </div>
   );
 }
-
-    
