@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from 'react';
@@ -108,7 +109,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     }
 
     let webhookUrl = '';
-    const enabledWebhooks = ['company-announcements', 'project-roadmap', 'product-manuals', 'task-board'];
+    const enabledWebhooks = ['company-announcements', 'project-roadmap', 'product-manuals', 'task-board', 'team-intros'];
     
     if (selectedChannel === 'company-announcements') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_ANNOUNCEMENTS!;
@@ -118,6 +119,8 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_PRODUCT_MANUALS!;
     } else if (selectedChannel === 'task-board') {
         webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TASK_BOARD!;
+    } else if (selectedChannel === 'team-intros') {
+        webhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TEAM_INTROS!;
     }
 
 
