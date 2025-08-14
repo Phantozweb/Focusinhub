@@ -112,12 +112,13 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
       return;
     }
 
-    const webhooks: { [key: string]: string } = {
-        'company-announcements': 'https://discord.com/api/webhooks/1234567890/your-announcements-webhook-url',
-        'project-roadmap': 'https://discord.com/api/webhooks/1234567890/your-roadmap-webhook-url',
-        'product-manuals': 'https://discord.com/api/webhooks/1234567890/your-manuals-webhook-url',
-        'task-board': 'https://discord.com/api/webhooks/1234567890/your-taskboard-webhook-url',
-        'team-intros': 'https://discord.com/api/webhooks/1405433952680017980/Ezb_7Ij5aGImjcil1QQR9WRORO5zy1usnr-WDchsQJ0XV9SvgKdGLC9NRfBFk8_Jeqia'
+    const webhooks: { [key: string]: string | undefined } = {
+        'team-intros': process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TEAM_INTROS,
+        // Add other webhooks here as needed
+        'company-announcements': undefined,
+        'project-roadmap': undefined,
+        'product-manuals': undefined,
+        'task-board': undefined,
     };
     
     const webhookUrl = webhooks[selectedChannel];

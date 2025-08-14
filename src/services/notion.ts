@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileoverview Service for interacting with the Notion API.
@@ -5,16 +6,12 @@
 
 import { Client } from '@notionhq/client';
 
-// WARNING: Storing secrets directly in the code is not recommended.
-// Replace these placeholder values with your actual Notion credentials.
-const NOTION_API_KEY = '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';
-const NOTION_DATABASE_ID = '24c34593568e8030ad44e64d32ed49a7';
-const NOTION_BIOMETRICS_DATABASE_ID = '24c34593568e40e78869fd26bcd0150c';
-
+const NOTION_API_KEY = process.env.NOTION_API_KEY;
+const taskDatabaseId = process.env.NOTION_DATABASE_ID;
+const biometricsDatabaseId = process.env.NOTION_BIOMETRICS_DATABASE_ID;
 
 const notion = new Client({ auth: NOTION_API_KEY });
-const taskDatabaseId = NOTION_DATABASE_ID;
-const biometricsDatabaseId = NOTION_BIOMETRICS_DATABASE_ID;
+
 
 export interface NotionTask {
   id: string;
@@ -49,7 +46,7 @@ function getAssignee(people: any[]): string | null {
 
 export async function getTasksFromNotion(): Promise<NotionTask[]> {
   if (!taskDatabaseId || !NOTION_API_KEY) {
-    throw new Error('Notion database ID is not configured.');
+    throw new Error('Notion database ID or API Key is not configured.');
   }
 
   const response = await notion.databases.query({
@@ -74,11 +71,7 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
         throw new Error('Notion API Key or Biometrics Database ID is not configured.');
     }
     const now = new Date();
-    // Format date to YYYY-MM-DD for Notion API
-    const year = now.getFullYear();
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const day = now.getDate().toString().padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;
+    const formattedDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
 
     const response = await notion.pages.create({
         parent: { database_id: biometricsDatabaseId },
