@@ -6,6 +6,11 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 export const metadata: Metadata = {
   title: 'Focus-IN Workspace',
   description: 'A unified workspace to manage customers, view tasks, and streamline team communication.',
+  openGraph: {
+    title: 'Focus-IN Team Workspace',
+    description: 'A unified workspace for the Focus-IN team to manage customers, view tasks, and streamline communication.',
+    siteName: 'Focus-IN Hub',
+  }
 };
 
 export default function RootLayout({
