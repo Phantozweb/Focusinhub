@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { sendCheckInNotification } from '@/services/discord';
 
 export default function Login() {
   const router = useRouter();
@@ -25,7 +26,17 @@ export default function Login() {
     }
 
     if (user) {
+        const checkInTime = new Date().toISOString();
         localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('checkInTime', checkInTime);
+
+        try {
+            await sendCheckInNotification(user.username, checkInTime);
+        } catch (error) {
+            console.error("Failed to send check-in notification", error);
+            // Non-critical, so we don't block login
+        }
+
         router.push('/');
     } else {
       toast({

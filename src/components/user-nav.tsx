@@ -17,6 +17,7 @@ import { LogOut, User } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { LogoutDialog } from "./logout-dialog";
+import { sendCheckOutNotification, sendWorkSummaryNotification } from "@/services/discord";
 
 type UserSession = {
     username: string;
@@ -40,8 +41,22 @@ export function UserNav() {
         }
     }, []);
 
-    const handleLogout = () => {
+    const handleLogout = async (workSummary: string) => {
+        const checkInTime = localStorage.getItem('checkInTime');
+        const checkOutTime = new Date().toISOString();
+
+        if (user && checkInTime) {
+            try {
+                await sendCheckOutNotification(user.username, checkOutTime);
+                await sendWorkSummaryNotification(user.username, checkInTime, checkOutTime, workSummary);
+            } catch (error) {
+                console.error("Failed to send check-out/summary notification", error);
+                // Don't block logout, but log the error.
+            }
+        }
+
         localStorage.removeItem('user');
+        localStorage.removeItem('checkInTime');
         setUser(null);
         setLogoutDialogOpen(false);
         router.push('/login');
