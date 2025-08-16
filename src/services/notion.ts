@@ -5,8 +5,8 @@
 
 import { Client } from '@notionhq/client';
 
-const NOTION_API_KEY = process.env.NOTION_API_KEY;
-const taskDatabaseId = process.env.NOTION_DATABASE_ID;
+const NOTION_API_KEY = process.env.NOTION_API_KEY as string;
+const taskDatabaseId = process.env.NOTION_DATABASE_ID as string;
 
 const notion = new Client({ auth: NOTION_API_KEY });
 

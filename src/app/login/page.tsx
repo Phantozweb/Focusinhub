@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,60 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription
-} from "@/components/ui/dialog";
 import { Eye, Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { sendCheckInNotification } from '@/services/discord';
 
-export default function Login() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleLogin = async () => {
-    let user: { username: string } | null = null;
-
-    if (userId === 'Jana@Ceo' && password === 'Janarthan@09876') {
-        user = { username: 'Jana@Ceo' };
-    } else if (userId === 'Hariharan@Focusin01' && password === 'h@rih@ran0789') {
-        user = { username: 'Hariharan@Focusin01' };
-    } else if (userId === 'Mugunthan@Focusin01' && password === 'mugunthan@focusin') {
-        user = { username: 'Mugunthan@Focusin01' };
-    }
-
-    if (user) {
-        const checkInTime = new Date().toISOString();
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('checkInTime', checkInTime);
-
-        try {
-            await sendCheckInNotification(user.username, checkInTime);
-        } catch (error) {
-            console.error("Failed to send check-in notification", error);
-            // Non-critical, so we don't block login
-        }
-        setIsDialogOpen(false);
-        router.push('/');
-    } else {
-      toast({
-        title: 'Login Failed',
-        description: 'Invalid User ID or Password.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const LoginForm = () => (
-     <Card className="w-full max-w-sm animate-in fade-in-50 zoom-in-95 duration-1000 fill-mode-both border-none shadow-none md:border md:shadow-sm">
+// Define the LoginForm as a separate component outside of Login
+// This prevents it from being re-created on every render of the parent
+const LoginForm = ({ userId, setUserId, password, setPassword, handleLogin }: any) => (
+    <Card className="w-full max-w-sm animate-in fade-in-50 zoom-in-95 duration-1000 fill-mode-both border-none shadow-none md:border md:shadow-sm">
         <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                 <Eye className="h-8 w-8 text-primary" />
@@ -96,7 +51,46 @@ export default function Login() {
             </form>
         </CardContent>
     </Card>
-  );
+);
+
+
+export default function Login() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [userId, setUserId] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    let user: { username: string } | null = null;
+
+    if (userId === 'Jana@Ceo' && password === 'Janarthan@09876') {
+        user = { username: 'Jana@Ceo' };
+    } else if (userId === 'Hariharan@Focusin01' && password === 'h@rih@ran0789') {
+        user = { username: 'Hariharan@Focusin01' };
+    } else if (userId === 'Mugunthan@Focusin01' && password === 'mugunthan@focusin') {
+        user = { username: 'Mugunthan@Focusin01' };
+    }
+
+    if (user) {
+        const checkInTime = new Date().toISOString();
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('checkInTime', checkInTime);
+
+        try {
+            await sendCheckInNotification(user.username, checkInTime);
+        } catch (error) {
+            console.error("Failed to send check-in notification", error);
+            // Non-critical, so we don't block login
+        }
+        router.push('/');
+    } else {
+      toast({
+        title: 'Login Failed',
+        description: 'Invalid User ID or Password.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <div className="relative grid min-h-screen w-full items-center justify-center bg-background">
@@ -117,11 +111,17 @@ export default function Login() {
              <div className="flex w-full items-center justify-center p-4">
                 {/* Desktop View */}
                 <div className="hidden md:flex">
-                    <LoginForm />
+                    <LoginForm
+                        userId={userId}
+                        setUserId={setUserId}
+                        password={password}
+                        setPassword={setPassword}
+                        handleLogin={handleLogin}
+                    />
                 </div>
                 
                 {/* Mobile View */}
-                <div className="md:hidden flex flex-col items-center justify-center text-center">
+                <div className="flex w-full flex-col items-center justify-center text-center md:hidden">
                      <div className="mb-8">
                         <div className="flex items-center justify-center gap-4">
                              <Rocket className="h-10 w-10 text-primary" />
@@ -131,14 +131,13 @@ export default function Login() {
                             The all-in-one workspace for your team.
                         </p>
                     </div>
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button size="lg" className="w-full max-w-xs">Log In</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                           <LoginForm />
-                        </DialogContent>
-                    </Dialog>
+                    <LoginForm
+                        userId={userId}
+                        setUserId={setUserId}
+                        password={password}
+                        setPassword={setPassword}
+                        handleLogin={handleLogin}
+                    />
                 </div>
             </div>
         </div>
