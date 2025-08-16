@@ -11,10 +11,15 @@ const SUMMARY_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL_SUMMARY;
 function getUserDisplayName(username: string): string {
     if (username === 'Jana@Ceo') return 'Janarthan (Founder & CEO)';
     if (username === 'Hariharan@Focusin01') return 'Hariharan';
+    if (username === 'Mugunthan@Focusin01') return 'Mugunthan';
     return username;
 }
 
 async function sendDiscordWebhook(url: string, payload: object) {
+    if (!url) {
+        console.warn('A Discord webhook URL is not configured. Skipping notification.');
+        return;
+    }
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -30,11 +35,6 @@ async function sendDiscordWebhook(url: string, payload: object) {
 }
 
 export async function sendCheckInNotification(username: string, checkInTime: string) {
-    if (!CHECK_IN_WEBHOOK_URL) {
-        console.warn('Check-in webhook URL is not configured. Skipping notification.');
-        return;
-    }
-
     const timestamp = Math.floor(new Date(checkInTime).getTime() / 1000);
     const displayName = getUserDisplayName(username);
 
@@ -54,15 +54,10 @@ export async function sendCheckInNotification(username: string, checkInTime: str
         }],
     };
 
-    await sendDiscordWebhook(CHECK_IN_WEBHOOK_URL, payload);
+    await sendDiscordWebhook(CHECK_IN_WEBHOOK_URL!, payload);
 }
 
 export async function sendCheckOutNotification(username: string, checkOutTime: string) {
-    if (!CHECK_OUT_WEBHOOK_URL) {
-        console.warn('Check-out webhook URL is not configured. Skipping notification.');
-        return;
-    }
-    
     const timestamp = Math.floor(new Date(checkOutTime).getTime() / 1000);
     const displayName = getUserDisplayName(username);
 
@@ -82,16 +77,11 @@ export async function sendCheckOutNotification(username: string, checkOutTime: s
         }],
     };
     
-    await sendDiscordWebhook(CHECK_OUT_WEBHOOK_URL, payload);
+    await sendDiscordWebhook(CHECK_OUT_WEBHOOK_URL!, payload);
 }
 
 
 export async function sendWorkSummaryNotification(username: string, checkInTime: string, checkOutTime: string, workSummary: string) {
-    if (!SUMMARY_WEBHOOK_URL) {
-        console.warn('Summary webhook URL is not configured. Skipping notification.');
-        return;
-    }
-
     const checkInDate = new Date(checkInTime);
     const checkOutDate = new Date(checkOutTime);
     
@@ -102,31 +92,37 @@ export async function sendWorkSummaryNotification(username: string, checkInTime:
 
     const checkInTimestamp = Math.floor(checkInDate.getTime() / 1000);
     const checkOutTimestamp = Math.floor(checkOutDate.getTime() / 1000);
+    const dateTimestamp = Math.floor(checkOutDate.getTime() / 1000);
     const displayName = getUserDisplayName(username);
 
     const payload = {
         embeds: [{
-            title: '📝 Daily Work Summary',
-            description: `**${displayName}**'s work summary for the day.`,
+            title: '📝 Work Details',
+            description: `Work summary from **${displayName}**.`,
             color: 16705372, // Yellow
             fields: [
                 {
-                    name: 'Login Time',
-                    value: `<t:${checkInTimestamp}:T>`,
+                    name: 'Date',
+                    value: `<t:${dateTimestamp}:D>`,
                     inline: true,
                 },
                 {
-                    name: 'Logout Time',
-                    value: `<t:${checkOutTimestamp}:T>`,
-                    inline: true,
-                },
-                 {
                     name: 'Total Duration',
                     value: totalHours,
                     inline: true,
                 },
                 {
-                    name: 'Work Done Today',
+                    name: 'Login Time',
+                    value: `<t:${checkInTimestamp}:T>`,
+                    inline: false,
+                },
+                {
+                    name: 'Logout Time',
+                    value: `<t:${checkOutTimestamp}:T>`,
+                    inline: false,
+                },
+                {
+                    name: 'Work Done',
                     value: `\`\`\`${workSummary}\`\`\``,
                     inline: false,
                 }
@@ -135,5 +131,5 @@ export async function sendWorkSummaryNotification(username: string, checkInTime:
         }],
     };
 
-    await sendDiscordWebhook(SUMMARY_WEBHOOK_URL, payload);
+    await sendDiscordWebhook(SUMMARY_WEBHOOK_URL!, payload);
 }

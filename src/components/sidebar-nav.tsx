@@ -6,56 +6,30 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronsUpDown, Fingerprint, Activity, Users, ListChecks, MessageCircle } from 'lucide-react';
+import { ChevronsUpDown, Users, Activity } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
 import { channelCategories } from '@/lib/constants';
-
 
 interface SidebarNavProps {
   currentView: string;
   setView: (view: string) => void;
+  user: { username: string } | null;
 }
 
 export function SidebarNav({
   currentView,
   setView,
+  user
 }: SidebarNavProps) {
   const { open } = useSidebar();
-  const [user, setUser] = useState<{ username: string } | null>(null);
-
-  useEffect(() => {
-    const userString = localStorage.getItem('user');
-    if (userString) {
-      try {
-        const parsedUser = JSON.parse(userString);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Failed to parse user from localStorage', error);
-      }
-    }
-  }, []);
-
   const isCeo = user?.username === 'Jana@Ceo';
 
   const renderNavForUser = () => {
     if (!isCeo) {
-      // Non-CEO View
+      // Non-CEO View - Only show CRM nav
       return (
         <nav className="flex flex-col gap-2 px-2">
-            <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                    'flex items-center justify-start gap-2 rounded-md px-2 py-1 text-sm',
-                    currentView === 'user-dashboard' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
-                )}
-                onClick={() => setView('user-dashboard')}
-            >
-                <Activity />
-                <span>My Dashboard</span>
-            </Button>
             <Button
                 variant="ghost"
                 size="sm"
@@ -72,7 +46,7 @@ export function SidebarNav({
       );
     }
     
-    // CEO View (only shows when on a specific page, not the main dashboard)
+    // CEO View (only shows nav when on a specific page, not the main dashboard)
     if (currentView === 'discord') {
          return (
              <nav className="flex flex-col gap-2 px-2">
@@ -110,10 +84,10 @@ export function SidebarNav({
         )
     }
 
-    return null; // Return null for founder on main dashboard view
+    // No sidebar navigation is shown for the founder on the main dashboard, CRM, or Tasks view.
+    // Navigation is handled by the cards on the main dashboard.
+    return null;
   };
 
   return renderNavForUser();
 }
-
-    

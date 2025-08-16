@@ -68,20 +68,14 @@ export default function Home() {
           return <FounderDashboard setView={setCurrentView} />;
       }
     } else {
-        // Non-founder view
-        switch (currentView) {
-            case 'user-dashboard':
-                return <UserDashboard user={user} />;
-            case 'crm':
-                return <CrmPage />;
-            default:
-                return <CrmPage />; // Default to CRM for non-founders
-        }
+        // Non-founder view defaults to CRM
+        return <CrmPage />;
     }
   };
 
   const getWelcomeMessage = () => {
       if (!user) return "Welcome!";
+      let welcomeName = user.username;
       if (user.username === 'Jana@Ceo') {
           switch(currentView) {
               case 'dashboard': return "Founder's Dashboard";
@@ -91,8 +85,9 @@ export default function Home() {
               default: return "Focus-IN Hub";
           }
       };
-      if (user.username === 'Hariharan@Focusin01') return "Welcome, Hariharan!";
-      return `Welcome, ${user.username}!`;
+      if (user.username === 'Hariharan@Focusin01') welcomeName = "Hariharan";
+      if (user.username === 'Mugunthan@Focusin01') welcomeName = "Mugunthan";
+      return `Welcome, ${welcomeName}!`;
   }
   
   return (
@@ -117,6 +112,7 @@ export default function Home() {
           <SidebarNav
             currentView={currentView}
             setView={setCurrentView}
+            user={user}
           />
         </SidebarContent>
       </Sidebar>

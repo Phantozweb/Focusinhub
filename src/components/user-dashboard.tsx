@@ -13,22 +13,25 @@ interface UserDashboardProps {
 
 export function UserDashboard({ user }: UserDashboardProps) {
 
-  const welcomeName = user.username === 'Hariharan@Focusin01' ? 'Hariharan' : user.username;
+  let welcomeName = user.username;
+  if (user.username === 'Hariharan@Focusin01') welcomeName = 'Hariharan';
+  if (user.username === 'Mugunthan@Focusin01') welcomeName = 'Mugunthan';
+
 
   return (
     <>
         <div className="grid gap-6">
-            <Card>
-                <CardHeader>
+             <Card>
+                 <CardHeader>
                     <CardTitle className="text-2xl font-headline">Welcome, {welcomeName}!</CardTitle>
                     <CardDescription>
                         Here is your Lead Management dashboard.
                     </CardDescription>
-                </CardHeader>
+                 </CardHeader>
                 <CardContent>
-                    <CrmPage />
+                    {/* The CrmPage is rendered directly here for non-founders */}
                 </CardContent>
-            </Card>
+             </Card>
         </div>
     </>
   );

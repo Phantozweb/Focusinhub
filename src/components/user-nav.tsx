@@ -48,7 +48,9 @@ export function UserNav() {
         if (user && checkInTime) {
             try {
                 await sendCheckOutNotification(user.username, checkOutTime);
-                await sendWorkSummaryNotification(user.username, checkInTime, checkOutTime, workSummary);
+                if (workSummary) {
+                    await sendWorkSummaryNotification(user.username, checkInTime, checkOutTime, workSummary);
+                }
             } catch (error) {
                 console.error("Failed to send check-out/summary notification", error);
                 // Don't block logout, but log the error.
@@ -66,6 +68,7 @@ export function UserNav() {
         if (!user) return '';
         if (user.username === 'Jana@Ceo') return 'Janarthan';
         if (user.username === 'Hariharan@Focusin01') return 'Hariharan';
+        if (user.username === 'Mugunthan@Focusin01') return 'Mugunthan';
         return user.username;
     }
 

@@ -23,6 +23,8 @@ export default function Login() {
         user = { username: 'Jana@Ceo' };
     } else if (userId === 'Hariharan@Focusin01' && password === 'h@rih@ran0789') {
         user = { username: 'Hariharan@Focusin01' };
+    } else if (userId === 'Mugunthan@Focusin01' && password === 'mugunthan@focusin') {
+        user = { username: 'Mugunthan@Focusin01' };
     }
 
     if (user) {
