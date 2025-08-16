@@ -34,7 +34,6 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
     AlertDialog,
@@ -60,29 +59,29 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 import {
   UploadCloud,
   UserPlus,
   Download,
-  Search,
   RefreshCw,
   MessageSquare,
   Users,
   CheckCircle2,
   Clock,
   MoreVertical,
-  Inbox,
   Eye,
   Edit,
   Trash2,
   Repeat,
-  Plus,
   Mail,
   FileJson,
   Combine,
-  ChevronDown
+  ChevronDown,
+  LayoutGrid,
+  List,
+  PieChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -126,9 +125,10 @@ export default function CrmPage() {
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isStatusUpdateOpen, setIsStatusUpdateOpen] = useState(false);
     const [isBulkStatusUpdateOpen, setIsBulkStatusUpdateOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+
 
     useEffect(() => {
         const storedLeads = localStorage.getItem('focusInLeadsData');
@@ -144,7 +144,7 @@ export default function CrmPage() {
             tempLeads = tempLeads.filter(lead =>
                 lead.name.toLowerCase().includes(searchTerm) ||
                 lead.email.toLowerCase().includes(searchTerm) ||
-                lead.institution?.toLowerCase().includes(searchTerm)
+                (lead.institution || '').toLowerCase().includes(searchTerm)
             );
         }
          if (currentTab !== 'all') {
@@ -364,7 +364,16 @@ export default function CrmPage() {
         }, {} as Record<string, number>);
         return Object.entries(counts).map(([name, value]) => ({ name, value }));
     }, [leads]);
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
+    
+    const statusChartData = useMemo(() => {
+        const counts = leads.reduce((acc, lead) => {
+            acc[lead.status] = (acc[lead.status] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        return Object.entries(counts).map(([name, value]) => ({ name, value }));
+    }, [leads]);
+
+    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF4560'];
 
 
     return (
@@ -514,163 +523,215 @@ export default function CrmPage() {
                                             <TabsTrigger value="interested">Interested</TabsTrigger>
                                             <TabsTrigger value="responded">Responded</TabsTrigger>
                                         </TabsList>
-                                        {selectedLeads.size > 0 && (
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="outline">
-                                                        Bulk Actions <ChevronDown className="ml-2 h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent>
-                                                    <DropdownMenuItem onClick={() => setIsBulkStatusUpdateOpen(true)}>
-                                                        <Repeat className="mr-2 h-4 w-4" /> Update Status
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                                <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
-                                                            </DropdownMenuItem>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Delete {selectedLeads.size} leads?</AlertDialogTitle>
-                                                                <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={handleBulkDelete}>Confirm</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {selectedLeads.size > 0 && (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="outline">
+                                                            Bulk Actions <ChevronDown className="ml-2 h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent>
+                                                        <DropdownMenuItem onClick={() => setIsBulkStatusUpdateOpen(true)}>
+                                                            <Repeat className="mr-2 h-4 w-4" /> Update Status
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+                                                                </DropdownMenuItem>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Delete {selectedLeads.size} leads?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={handleBulkDelete}>Confirm</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            )}
+                                            <Button variant={viewMode === 'card' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('card')}><LayoutGrid/></Button>
+                                            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')}><List/></Button>
+                                        </div>
                                     </div>
-                                    <div className="rounded-md border mt-4">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead padding="checkbox">
-                                                    <Checkbox
-                                                        checked={selectedLeads.size === filteredLeads.length && filteredLeads.length > 0}
-                                                        onCheckedChange={(checked) => {
-                                                            const newSelectedLeads = new Set<string>();
-                                                            if (checked) {
-                                                                filteredLeads.forEach(lead => newSelectedLeads.add(lead.id));
-                                                            }
-                                                            setSelectedLeads(newSelectedLeads);
-                                                        }}
-                                                    />
-                                                </TableHead>
-                                                <TableHead>Name</TableHead>
-                                                <TableHead className="hidden md:table-cell">Institution</TableHead>
-                                                <TableHead className="hidden lg:table-cell">Product Interest</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead className="text-right">Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {filteredLeads.length > 0 ? (
-                                                filteredLeads.map(lead => (
-                                                    <TableRow key={lead.id} data-state={selectedLeads.has(lead.id) && "selected"}>
-                                                        <TableCell padding="checkbox">
-                                                             <Checkbox
-                                                                checked={selectedLeads.has(lead.id)}
-                                                                onCheckedChange={(checked) => {
-                                                                    const newSelected = new Set(selectedLeads);
-                                                                    if (checked) {
-                                                                        newSelected.add(lead.id);
-                                                                    } else {
-                                                                        newSelected.delete(lead.id);
-                                                                    }
-                                                                    setSelectedLeads(newSelected);
-                                                                }}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell className="font-medium">{lead.name}</TableCell>
-                                                        <TableCell className="hidden md:table-cell">{lead.institution || "N/A"}</TableCell>
-                                                        <TableCell className="hidden lg:table-cell">{lead.product}</TableCell>
-                                                        <TableCell>
-                                                            <Badge variant={getStatusBadgeVariant(lead.status)}>{lead.status}</Badge>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                        <span className="sr-only">Open menu</span>
-                                                                        <MoreVertical className="h-4 w-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuItem onClick={() => { setSelectedLead(lead); setIsProfileOpen(true); }}>
-                                                                        <Eye className="mr-2 h-4 w-4" /> View Profile
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem onClick={() => { setSelectedLead(lead); setIsStatusUpdateOpen(true); }}>
-                                                                        <Repeat className="mr-2 h-4 w-4" /> Update Status
-                                                                    </DropdownMenuItem>
-                                                                     <DropdownMenuItem onClick={() => window.location.href = `mailto:${lead.email}`}>
-                                                                        <Mail className="mr-2 h-4 w-4" /> Send Email
-                                                                    </DropdownMenuItem>
-                                                                     <DropdownMenuItem onClick={() => lead.whatsapp && window.open(`https://wa.me/${lead.whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}>
-                                                                        <MessageSquare className="mr-2 h-4 w-4" /> Send WhatsApp
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuSeparator />
-                                                                    <DropdownMenuItem onClick={() => { setSelectedLead(lead); setIsFormOpen(true); }}>
-                                                                        <Edit className="mr-2 h-4 w-4" /> Edit Lead
-                                                                    </DropdownMenuItem>
-                                                                    <AlertDialog>
-                                                                        <AlertDialogTrigger asChild>
-                                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                                                <Trash2 className="mr-2 h-4 w-4" /> Delete Lead
-                                                                            </DropdownMenuItem>
-                                                                        </AlertDialogTrigger>
-                                                                        <AlertDialogContent>
-                                                                            <AlertDialogHeader><AlertDialogTitle>Delete this lead?</AlertDialogTitle></AlertDialogHeader>
-                                                                            <AlertDialogDescription>This will permanently delete {lead.name}'s record.</AlertDialogDescription>
-                                                                            <AlertDialogFooter>
-                                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                                <AlertDialogAction onClick={() => handleDeleteLead(lead.id)}>Confirm</AlertDialogAction>
-                                                                            </AlertDialogFooter>
-                                                                        </AlertDialogContent>
-                                                                    </AlertDialog>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
+                                    <div className="mt-4">
+                                    {viewMode === 'list' ? (
+                                        <div className="rounded-md border">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead padding="checkbox">
+                                                        <Checkbox
+                                                            checked={filteredLeads.length > 0 && selectedLeads.size === filteredLeads.length}
+                                                            onCheckedChange={(checked) => {
+                                                                const newSelectedLeads = new Set<string>();
+                                                                if (checked) {
+                                                                    filteredLeads.forEach(lead => newSelectedLeads.add(lead.id));
+                                                                }
+                                                                setSelectedLeads(newSelectedLeads);
+                                                            }}
+                                                        />
+                                                    </TableHead>
+                                                    <TableHead>Name</TableHead>
+                                                    <TableHead className="hidden md:table-cell">Institution</TableHead>
+                                                    <TableHead className="hidden lg:table-cell">Product Interest</TableHead>
+                                                    <TableHead>Status</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {filteredLeads.length > 0 ? (
+                                                    filteredLeads.map(lead => (
+                                                        <TableRow key={lead.id} data-state={selectedLeads.has(lead.id) && "selected"}>
+                                                            <TableCell padding="checkbox">
+                                                                <Checkbox
+                                                                    checked={selectedLeads.has(lead.id)}
+                                                                    onCheckedChange={(checked) => {
+                                                                        const newSelected = new Set(selectedLeads);
+                                                                        if (checked) {
+                                                                            newSelected.add(lead.id);
+                                                                        } else {
+                                                                            newSelected.delete(lead.id);
+                                                                        }
+                                                                        setSelectedLeads(newSelected);
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell className="font-medium">{lead.name}</TableCell>
+                                                            <TableCell className="hidden md:table-cell">{lead.institution || "N/A"}</TableCell>
+                                                            <TableCell className="hidden lg:table-cell">{lead.product}</TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={getStatusBadgeVariant(lead.status)}>{lead.status}</Badge>
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                            <span className="sr-only">Open menu</span>
+                                                                            <MoreVertical className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end">
+                                                                        <DropdownMenuItem onClick={() => { setSelectedLead(lead); setIsStatusUpdateOpen(true); }}>
+                                                                            <Repeat className="mr-2 h-4 w-4" /> Update Status
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem onClick={() => window.location.href = `mailto:${lead.email}`}>
+                                                                            <Mail className="mr-2 h-4 w-4" /> Send Email
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem onClick={() => lead.whatsapp && window.open(`https://wa.me/${lead.whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}>
+                                                                            <MessageSquare className="mr-2 h-4 w-4" /> Send WhatsApp
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem onClick={() => { setSelectedLead(lead); setIsFormOpen(true); }}>
+                                                                            <Edit className="mr-2 h-4 w-4" /> Edit Lead
+                                                                        </DropdownMenuItem>
+                                                                        <AlertDialog>
+                                                                            <AlertDialogTrigger asChild>
+                                                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Lead
+                                                                                </DropdownMenuItem>
+                                                                            </AlertDialogTrigger>
+                                                                            <AlertDialogContent>
+                                                                                <AlertDialogHeader><AlertDialogTitle>Delete this lead?</AlertDialogTitle></AlertDialogHeader>
+                                                                                <AlertDialogDescription>This will permanently delete {lead.name}'s record.</AlertDialogDescription>
+                                                                                <AlertDialogFooter>
+                                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                                    <AlertDialogAction onClick={() => handleDeleteLead(lead.id)}>Confirm</AlertDialogAction>
+                                                                                </AlertDialogFooter>
+                                                                            </AlertDialogContent>
+                                                                        </AlertDialog>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                ) : (
+                                                    <TableRow>
+                                                        <TableCell colSpan={6} className="h-24 text-center">
+                                                            No results found for your filters.
                                                         </TableCell>
                                                     </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={6} className="h-24 text-center">
-                                                        No results found for your filters.
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                    </div>
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {filteredLeads.map(lead => (
+                                                <Card key={lead.id} className="flex flex-col">
+                                                    <CardHeader>
+                                                        <CardTitle>{lead.name}</CardTitle>
+                                                        <CardDescription>{lead.institution || "No institution"}</CardDescription>
+                                                    </CardHeader>
+                                                    <CardContent className="flex-grow space-y-2">
+                                                        <p className="text-sm text-muted-foreground">{lead.email}</p>
+                                                        <p className="text-sm text-muted-foreground">{lead.phone || "No phone"}</p>
+                                                        <Badge variant="outline">{lead.product}</Badge>
+                                                        <Badge variant={getStatusBadgeVariant(lead.status)}>{lead.status}</Badge>
+                                                    </CardContent>
+                                                    <CardContent className="flex gap-2">
+                                                        <Button size="sm" variant="outline" className="w-full" onClick={() => { setSelectedLead(lead); setIsFormOpen(true); }}>Edit</Button>
+                                                        <Button size="sm" className="w-full" onClick={() => { setSelectedLead(lead); setIsStatusUpdateOpen(true);}}>Update</Button>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    )}
+                                     </div>
                                 </Tabs>
                             </CardContent>
                         </Card>
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Product Interest</CardTitle>
-                                <CardDescription>Distribution of leads by product.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <ResponsiveContainer width="100%" height={300}>
-                                <PieChart>
-                                    <Pie data={productChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                                    {productChartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend />
-                                </PieChart>
-                                </ResponsiveContainer>
-                                <div className="mt-6 flex flex-col gap-2">
-                                     <input
+                         <div className="flex flex-col gap-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2"><PieChart/>Product Interest</CardTitle>
+                                    <CardDescription>Distribution of leads by product.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <ResponsiveContainer width="100%" height={250}>
+                                    <RechartsPieChart>
+                                        <Pie data={productChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                                        {productChartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend />
+                                    </RechartsPieChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle  className="flex items-center gap-2"><PieChart/>Status Distribution</CardTitle>
+                                    <CardDescription>Breakdown of lead statuses.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                     <ResponsiveContainer width="100%" height={250}>
+                                    <RechartsPieChart>
+                                        <Pie data={statusChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                                        {statusChartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend />
+                                    </RechartsPieChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Data Management</CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex flex-col gap-2">
+                                    <input
                                         type="file" accept=".json" ref={fileInputRef} className="hidden"
                                         onChange={(e) => e.target.files && handleFileUpload(e.target.files[0], true)}
                                         disabled={isLoading}
@@ -681,9 +742,9 @@ export default function CrmPage() {
                                     <Button onClick={exportData}>
                                         <Download className="mr-2 h-4 w-4" /> Export as JSON
                                     </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
+                         </div>
                     </div>
                 </>
             )}
@@ -823,3 +884,4 @@ export default function CrmPage() {
     );
 }
 
+    

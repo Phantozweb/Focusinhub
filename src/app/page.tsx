@@ -9,13 +9,14 @@ import {
 import { SidebarNav } from '@/components/sidebar-nav';
 import { UserNav } from '@/components/user-nav';
 import { Dashboard } from '@/components/dashboard';
-import { Eye } from 'lucide-react';
+import { Eye, Briefcase, Fingerprint, MessageCircle, LayoutDashboard } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NotionPage from './notion/page';
 import BiometricsPage from './biometrics/page';
 import { UserDashboard } from '@/components/user-dashboard';
 import CrmPage from './crm/page';
+import { FounderDashboard } from '@/components/founder-dashboard';
 
 type UserSession = {
   username: string;
@@ -27,7 +28,7 @@ export default function Home() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
-  const [selectedChannel, setSelectedChannel] = useState('company-announcements');
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'crm', 'biometrics', 'discord', 'tasks'
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -36,12 +37,12 @@ export default function Home() {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         setIsAuthenticated(true);
+        // Set default view based on user type
         if (parsedUser?.username !== 'Jana@Ceo') {
-            setSelectedChannel('user-dashboard');
+            setCurrentView('crm');
         }
       } catch (error) {
         console.error("Failed to parse user from localStorage", error);
-        // Clear broken user data and redirect to login
         localStorage.removeItem('user');
         router.push('/login');
       }
@@ -55,35 +56,62 @@ export default function Home() {
   }
   
   const renderContent = () => {
-    if (selectedChannel === 'user-dashboard' && user.username !== 'Jana@Ceo') {
-        return <UserDashboard user={user} />;
-    }
-    if (selectedChannel === 'crm') {
-      return <CrmPage />;
-    }
     if (user.username === 'Jana@Ceo') {
-        if (selectedChannel === 'notion-tasks') {
-          return <NotionPage />;
-        }
-        if (selectedChannel === 'biometrics') {
+      switch (currentView) {
+        case 'dashboard':
+          return <FounderDashboard setView={setCurrentView} />;
+        case 'crm':
+          return <CrmPage />;
+        case 'biometrics':
           return <BiometricsPage />;
+        case 'discord':
+          return <Dashboard selectedChannel={'company-announcements'} />;
+         case 'tasks':
+          return <NotionPage />;
+        default:
+          return <FounderDashboard setView={setCurrentView} />;
+      }
+    } else {
+        // Non-founder view
+        switch (currentView) {
+            case 'user-dashboard':
+                return <UserDashboard user={user} />;
+            case 'crm':
+                return <CrmPage />;
+            default:
+                return <CrmPage />; // Default to CRM for non-founders
         }
-        return <Dashboard selectedChannel={selectedChannel} />;
     }
-     // Fallback for non-ceo users if they land on a channel they shouldn't see
-     return <UserDashboard user={user} />;
   };
 
   const getWelcomeMessage = () => {
       if (!user) return "Welcome!";
-      if (user.username === 'Jana@Ceo') return "Welcome, Founder!";
+      if (user.username === 'Jana@Ceo') {
+          switch(currentView) {
+              case 'dashboard': return "Founder's Dashboard";
+              case 'crm': return "Lead Management";
+              case 'biometrics': return "Biometrics Log";
+              case 'discord': return "Message Composer";
+              case 'tasks': return "Task Board";
+              default: return "Focus-IN Hub";
+          }
+      };
       if (user.username === 'Hariharan@Focusin01') return "Welcome, Hariharan!";
       return `Welcome, ${user.username}!`;
   }
+  
+  const showSidebar = user.username !== 'Jana@Ceo' || (user.username === 'Jana@Ceo' && currentView === 'dashboard');
 
   return (
     <>
       <Sidebar className="border-r">
+         {user.username === 'Jana@Ceo' && currentView !== 'dashboard' && (
+            <SidebarHeader>
+                <Button variant="ghost" onClick={() => setCurrentView('dashboard')} className="flex items-center gap-2 justify-start">
+                    <LayoutDashboard /> Back to Dashboard
+                </Button>
+            </SidebarHeader>
+        )}
         <SidebarHeader>
           <div className="flex items-center gap-2">
             <Eye className="h-7 w-7 text-primary" />
@@ -94,8 +122,8 @@ export default function Home() {
         </SidebarHeader>
         <SidebarContent>
           <SidebarNav
-            selectedChannel={selectedChannel}
-            setSelectedChannel={setSelectedChannel}
+            currentView={currentView}
+            setView={setCurrentView}
           />
         </SidebarContent>
       </Sidebar>
@@ -120,3 +148,5 @@ export default function Home() {
     </>
   );
 }
+
+    

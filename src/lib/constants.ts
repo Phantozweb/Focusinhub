@@ -11,27 +11,6 @@ export const channelCategories = [
     ],
   },
   {
-    name: 'Lead Management',
-    icon: '🎯',
-    channels: [
-      { name: 'crm', icon: '📊', isPrivate: false, isLeadershipOnly: false, description: "Manage and track customer leads." },
-    ]
-  },
-  {
-    name: 'Team Analytics',
-    icon: '📊',
-    channels: [
-      { name: 'biometrics', icon: '🔬', isPrivate: true, isLeadershipOnly: true, description: "View team check-in and check-out data." },
-    ]
-  },
-  {
-    name: 'Task Management',
-    icon: '📝',
-    channels: [
-        { name: 'notion-tasks', icon: '✅', isPrivate: false, isLeadershipOnly: false, description: "View tasks from Notion." },
-    ]
-  },
-  {
     name: 'Operations & Projects',
     icon: '📂',
     channels: [
@@ -101,3 +80,5 @@ export const channelCategories = [
 ];
 
 export const allChannels = channelCategories.flatMap(category => category.channels.map(channel => channel.name));
+
+    
