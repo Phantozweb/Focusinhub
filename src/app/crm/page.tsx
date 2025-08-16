@@ -145,33 +145,33 @@ export default function CrmPage() {
             const fileContent = await file.text();
             const parsedContent = JSON.parse(fileContent);
 
-            // Check if it's a detailed lead file or a simple contact file
-            const isDetailedLeadFile = parsedContent.length > 0 && 'product' in parsedContent[0] && 'status' in parsedContent[0];
-            
-            let newLeads: Lead[];
-
-            if (isDetailedLeadFile) {
-                newLeads = parsedContent.map((lead: any) => ({
-                    ...lead,
-                    id: lead.id ? String(lead.id) : `${Date.now()}-${Math.random()}`,
-                    logs: lead.logs || [],
-                }));
-            } else {
-                 const result = await generateLeads({ contacts: parsedContent });
-                 newLeads = result.map((lead: any) => ({
-                    id: lead.id || `${Date.now()}-${Math.random()}`,
-                    name: lead.name,
-                    email: lead.email,
-                    phone: lead.phone,
-                    whatsapp: lead.whatsapp,
-                    institution: lead.institution,
-                    membership: lead.membership,
-                    product: lead.productInterest,
-                    status: 'pending',
-                    logs: [],
-                    lastUpdated: new Date().toISOString(),
-                }));
+            if (!Array.isArray(parsedContent)) {
+                 toast({ title: "Invalid Format", description: "JSON file must contain an array of leads.", variant: "destructive" });
+                 setIsLoading(false);
+                 return;
             }
+
+            const newLeads: Lead[] = parsedContent.map((lead: any) => ({
+                id: lead.id ? String(lead.id) : `${Date.now()}-${Math.random()}`,
+                name: lead.name || 'N/A',
+                email: lead.email || 'N/A',
+                phone: lead.phone,
+                whatsapp: lead.whatsapp,
+                institution: lead.institution,
+                product: lead.product || 'N/A',
+                membership: lead.membership,
+                district: lead.district,
+                state: lead.state,
+                country: lead.country,
+                pinCode: lead.pinCode,
+                dateOfBirth: lead.dateOfBirth,
+                gender: lead.gender,
+                qualification: lead.qualification,
+                profession: lead.profession,
+                status: lead.status || 'pending',
+                logs: lead.logs || [],
+                lastUpdated: lead.lastUpdated || new Date().toISOString(),
+            }));
             
             setLeads(prev => {
                 const updatedLeads = [...prev, ...newLeads];
@@ -303,7 +303,7 @@ export default function CrmPage() {
                     <div className="p-6 border-dashed border-2 rounded-lg text-center flex flex-col items-center gap-4 bg-muted/50">
                         <UploadCloud className="w-12 h-12 text-primary" />
                         <h3 className="text-lg font-semibold">Drag & Drop or Upload Contacts</h3>
-                        <p className="text-muted-foreground">Upload a JSON file with contact details to generate enriched leads with AI.</p>
+                        <p className="text-muted-foreground">Upload a JSON file with contact details to manage your leads.</p>
                         <input
                             type="file"
                             accept=".json"
