@@ -11,6 +11,13 @@ export const channelCategories = [
     ],
   },
   {
+    name: 'Lead Management',
+    icon: '🎯',
+    channels: [
+      { name: 'crm', icon: '📊', isPrivate: false, isLeadershipOnly: false, description: "Manage and track customer leads." },
+    ]
+  },
+  {
     name: 'Team Analytics',
     icon: '📊',
     channels: [

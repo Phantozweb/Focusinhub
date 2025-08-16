@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import NotionPage from './notion/page';
 import BiometricsPage from './biometrics/page';
 import { UserDashboard } from '@/components/user-dashboard';
+import CrmPage from './crm/page';
 
 type UserSession = {
   username: string;
@@ -35,6 +36,9 @@ export default function Home() {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         setIsAuthenticated(true);
+        if (parsedUser?.username !== 'Jana@Ceo') {
+            setSelectedChannel('user-dashboard');
+        }
       } catch (error) {
         console.error("Failed to parse user from localStorage", error);
         // Clear broken user data and redirect to login
@@ -49,22 +53,25 @@ export default function Home() {
   if (!isAuthenticated || !user) {
     return null; // Or a loading spinner
   }
-
-  const isCeo = user?.username === 'Jana@Ceo';
   
   const renderContent = () => {
-    if (!isCeo) {
+    if (selectedChannel === 'user-dashboard' && user.username !== 'Jana@Ceo') {
         return <UserDashboard user={user} />;
     }
-    
-    // CEO View
-    if (selectedChannel === 'notion-tasks') {
-      return <NotionPage />;
+    if (selectedChannel === 'crm') {
+      return <CrmPage />;
     }
-    if (selectedChannel === 'biometrics') {
-      return <BiometricsPage />;
+    if (user.username === 'Jana@Ceo') {
+        if (selectedChannel === 'notion-tasks') {
+          return <NotionPage />;
+        }
+        if (selectedChannel === 'biometrics') {
+          return <BiometricsPage />;
+        }
+        return <Dashboard selectedChannel={selectedChannel} />;
     }
-    return <Dashboard selectedChannel={selectedChannel} />;
+     // Fallback for non-ceo users if they land on a channel they shouldn't see
+     return <UserDashboard user={user} />;
   };
 
   const getWelcomeMessage = () => {
