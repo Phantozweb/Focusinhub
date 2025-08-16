@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 const ContactSchema = z.object({
   name: z.string().describe('Full name of the contact.'),
-  email: z.string().email().describe('Email address of the contact.'),
+  email: z.string().describe('Email address of the contact.'),
   phone: z.string().optional().describe('Phone number of the contact.'),
   whatsapp: z.string().optional().describe('WhatsApp number of the contact.'),
   institution: z.string().optional().describe('The company, university, or organization the contact is affiliated with.'),
@@ -21,7 +21,7 @@ export type GenerateLeadsInput = z.infer<typeof GenerateLeadsInputSchema>;
 const LeadSchema = z.object({
     id: z.string().describe('A unique identifier for the lead.'),
     name: z.string().describe('Full name of the lead.'),
-    email: z.string().email().describe('Email address of the lead.'),
+    email: z.string().describe('Email address of the lead.'),
     phone: z.string().optional().describe('Phone number of the lead.'),
     whatsapp: z.string().optional().describe('WhatsApp number of the lead.'),
     institution: z.string().optional().describe('The organization the lead belongs to.'),
