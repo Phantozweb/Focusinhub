@@ -17,6 +17,7 @@ import BiometricsPage from './biometrics/page';
 import { UserDashboard } from '@/components/user-dashboard';
 import CrmPage from './crm/page';
 import { FounderDashboard } from '@/components/founder-dashboard';
+import { Button } from '@/components/ui/button';
 
 type UserSession = {
   username: string;
@@ -148,5 +149,3 @@ export default function Home() {
     </>
   );
 }
-
-    
