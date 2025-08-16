@@ -8,52 +8,25 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { checkInUser } from '@/services/notion';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function Login() {
   const router = useRouter();
   const { toast } = useToast();
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState<'Work' | 'Visit' | null>('Work');
 
   const handleLogin = async () => {
-    if (!status) {
-        toast({
-            title: 'Status Required',
-            description: 'Please select if you are here for work or a visit.',
-            variant: 'destructive',
-        });
-        return;
-    }
-
     let user: { username: string } | null = null;
-    let notionUsername: string | null = null;
 
     if (userId === 'Jana@Ceo' && password === 'Janarthan@09876') {
         user = { username: 'Jana@Ceo' };
-        notionUsername = 'Janarthan';
     } else if (userId === 'Hariharan@Focusin01' && password === 'h@rih@ran0789') {
         user = { username: 'Hariharan@Focusin01' };
-        notionUsername = 'Hariharan';
     }
 
-    if (user && notionUsername) {
-      try {
-        const notionPageId = await checkInUser(notionUsername, status);
-        const checkInTime = new Date().toISOString();
-        const sessionData = { ...user, notionPageId, checkInTime };
-        localStorage.setItem('user', JSON.stringify(sessionData));
+    if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
         router.push('/');
-      } catch (error) {
-        console.error('Failed to check in user:', error);
-        toast({
-          title: 'Notion Check-in Failed',
-          description: 'Could not create a session in Notion. Please check API keys and permissions.',
-          variant: 'destructive',
-        });
-      }
     } else {
       toast({
         title: 'Login Failed',
@@ -110,23 +83,6 @@ export default function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Reason for Visit</Label>
-                        <RadioGroup
-                            value={status ?? 'Work'}
-                            onValueChange={(value: 'Work' | 'Visit') => setStatus(value)}
-                            className="flex gap-4 pt-1"
-                        >
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="Work" id="work" />
-                                <Label htmlFor="work">Work</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="Visit" id="visit" />
-                                <Label htmlFor="visit">Visit</Label>
-                            </div>
-                        </RadioGroup>
                     </div>
                     <Button type="submit" className="w-full !mt-6">
                         Log In

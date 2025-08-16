@@ -1,12 +1,11 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "./ui/button";
-import { Briefcase, Fingerprint, MessageCircle, Users, ListChecks } from 'lucide-react';
+import { MessageCircle, Users, ListChecks } from 'lucide-react';
 
 interface FounderDashboardProps {
-    setView: (view: 'dashboard' | 'crm' | 'biometrics' | 'discord' | 'tasks') => void;
+    setView: (view: 'dashboard' | 'crm' | 'discord' | 'tasks') => void;
 }
 
 export function FounderDashboard({ setView }: FounderDashboardProps) {
@@ -17,12 +16,6 @@ export function FounderDashboard({ setView }: FounderDashboardProps) {
             description: "View, manage, and track customer leads.",
             icon: <Users className="h-8 w-8 text-primary" />,
             view: 'crm',
-        },
-        {
-            title: "Biometrics Log",
-            description: "Monitor team check-in and check-out data.",
-            icon: <Fingerprint className="h-8 w-8 text-primary" />,
-            view: 'biometrics',
         },
         {
             title: "Message Composer",
@@ -70,5 +63,3 @@ export function FounderDashboard({ setView }: FounderDashboardProps) {
         </div>
     )
 }
-
-    

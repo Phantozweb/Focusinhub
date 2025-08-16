@@ -9,27 +9,24 @@ import {
 import { SidebarNav } from '@/components/sidebar-nav';
 import { UserNav } from '@/components/user-nav';
 import { Dashboard } from '@/components/dashboard';
-import { Eye, Briefcase, Fingerprint, MessageCircle, LayoutDashboard } from 'lucide-react';
+import { Eye, LayoutDashboard } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NotionPage from './notion/page';
-import BiometricsPage from './biometrics/page';
-import { UserDashboard } from '@/components/user-dashboard';
 import CrmPage from './crm/page';
 import { FounderDashboard } from '@/components/founder-dashboard';
 import { Button } from '@/components/ui/button';
+import { UserDashboard } from '@/components/user-dashboard';
 
 type UserSession = {
   username: string;
-  notionPageId: string;
-  checkInTime: string;
 }
 
 export default function Home() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'crm', 'biometrics', 'discord', 'tasks'
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'crm', 'discord', 'tasks'
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -63,8 +60,6 @@ export default function Home() {
           return <FounderDashboard setView={setCurrentView} />;
         case 'crm':
           return <CrmPage />;
-        case 'biometrics':
-          return <BiometricsPage />;
         case 'discord':
           return <Dashboard selectedChannel={'company-announcements'} />;
          case 'tasks':
@@ -91,7 +86,6 @@ export default function Home() {
           switch(currentView) {
               case 'dashboard': return "Founder's Dashboard";
               case 'crm': return "Lead Management";
-              case 'biometrics': return "Biometrics Log";
               case 'discord': return "Message Composer";
               case 'tasks': return "Task Board";
               default: return "Focus-IN Hub";
@@ -101,8 +95,6 @@ export default function Home() {
       return `Welcome, ${user.username}!`;
   }
   
-  const showSidebar = user.username !== 'Jana@Ceo' || (user.username === 'Jana@Ceo' && currentView === 'dashboard');
-
   return (
     <>
       <Sidebar className="border-r">

@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -18,19 +17,13 @@ import { LogOut, User } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { LogoutDialog } from "./logout-dialog";
-import { useToast } from "@/hooks/use-toast";
-import { checkOutUser } from "@/services/notion";
-
 
 type UserSession = {
     username: string;
-    notionPageId: string;
-    checkInTime: string;
 };
 
 export function UserNav() {
     const router = useRouter();
-    const { toast } = useToast();
     const [user, setUser] = useState<UserSession | null>(null);
     const [isLogoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
@@ -47,35 +40,12 @@ export function UserNav() {
         }
     }, []);
 
-    const completeLogout = () => {
+    const handleLogout = () => {
         localStorage.removeItem('user');
         setUser(null);
         setLogoutDialogOpen(false);
         router.push('/login');
     }
-
-    const handleLogoutConfirm = async (notes: string) => {
-        if (!user || !user.notionPageId || !user.checkInTime) {
-            toast({ title: "Session error", description: "No active session found. Logging you out.", variant: "destructive" });
-            completeLogout();
-            return;
-        }
-
-        try {
-            await checkOutUser(user.notionPageId, user.checkInTime, notes);
-            toast({ title: "Logged Out", description: "Your session has ended and your notes have been saved."});
-        } catch (error) {
-            console.error("Failed to check out user:", error);
-            toast({
-                title: 'Logout Sync Failed',
-                description: 'Could not save your notes to Notion, but you have been logged out.',
-                variant: 'destructive',
-            });
-        } finally {
-            completeLogout();
-        }
-    };
-
 
     const getUserDisplayName = () => {
         if (!user) return '';
@@ -129,7 +99,7 @@ export function UserNav() {
             <LogoutDialog
                 isOpen={isLogoutDialogOpen}
                 onClose={() => setLogoutDialogOpen(false)}
-                onConfirm={handleLogoutConfirm}
+                onConfirm={handleLogout}
             />
         )}
     </>
