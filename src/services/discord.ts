@@ -4,9 +4,9 @@
  * @fileoverview Service for sending notifications to Discord webhooks.
  */
 
-const CHECK_IN_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL_CHECK_IN;
-const CHECK_OUT_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL_CHECK_OUT;
-const SUMMARY_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL_SUMMARY;
+const CHECK_IN_WEBHOOK_URL = "https://discord.com/api/webhooks/1406356537282396160/Fb9ByhiKZnSsrFnNbCqPARuYPeOoctS7Dp8ykAXtz-kmoa1gzDaay0bWndwyUk5aOc9E";
+const CHECK_OUT_WEBHOOK_URL = "https://discord.com/api/webhooks/1406357702535417968/BdBLsFheFMDrNIY06B7L-f7TPBdIf8Pu2nrpQlh50HAV7gO2fSt5sfhpIx-LcKsvVlVQ";
+const SUMMARY_WEBHOOK_URL = "https://discord.com/api/webhooks/1406357889819476100/1m3DQf-gxOodftwJiZQZTjY3FoPLwUzHtbvFWfG_zqOXbf3z8pts6KASJ7Or-SWuom6N";
 
 function getUserDisplayName(username: string): string {
     if (username === 'Jana@Ceo') return 'Janarthan (Founder & CEO)';

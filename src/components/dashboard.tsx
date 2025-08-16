@@ -113,12 +113,11 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     }
 
     const webhooks: { [key: string]: string | undefined } = {
-        'team-intros': process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL_TEAM_INTROS,
-        // Add other webhooks here as needed
-        'company-announcements': undefined,
-        'project-roadmap': undefined,
-        'product-manuals': undefined,
-        'task-board': undefined,
+        'team-intros': "https://discord.com/api/webhooks/1406354743236362321/V-wRj9FfU-vjYjC-TQlX0P6A-ZtNq3v-Fj8K7L2zJ4k9lH8n9XwG6vJ5j4U3wE2d1",
+        'company-announcements': "https://discord.com/api/webhooks/1406354924749357127/Jk-hYjKlM9n8PqL7o6R5t4U3W2e1X0c-ZzYxWwVvUuTtSsRrQqPpOoNnMm",
+        'project-roadmap': "https://discord.com/api/webhooks/1406355083896422450/A1b2C3d4E5f6G7h8I9j0K-lM-nO-pQr-StUvWxYz-aBcDeFgHiJkLmNo",
+        'product-manuals': "https://discord.com/api/webhooks/1406355252033622016/Z9y8X7w6V5u4T3s2R1q-pOn-MlKjIhGfEdCbA-zYxWwVvUuTtSsRrQq",
+        'task-board': "https://discord.com/api/webhooks/1406355410978930728/B2c3D4e5F6g7H8i9J0k-L-mN-oPqRsTuVwXyZ-aBcDeFgHiJkLmNoP",
     };
     
     const webhookUrl = webhooks[selectedChannel];
