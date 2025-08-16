@@ -59,10 +59,10 @@ export default function Login() {
                      <h1 className="font-headline text-5xl font-bold">Focus-IN Hub</h1>
                 </div>
                 <p className="mt-4 text-2xl font-medium text-muted-foreground">
-                    Your workspace message composer for Discord.
+                    The all-in-one workspace for Focus-IN.
                 </p>
                 <p className="mt-2 text-lg text-muted-foreground/80">
-                    Craft, refine, and send perfect announcements with the power of AI.
+                    Manage leads, view tasks, and send announcements with the power of AI.
                 </p>
             </div>
              <div className="flex w-full items-center justify-center p-4">

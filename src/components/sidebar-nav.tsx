@@ -6,10 +6,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronsUpDown, Users, Activity } from 'lucide-react';
+import { ChevronsUpDown, Users, Link as LinkIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { channelCategories } from '@/lib/constants';
+import { webhookedChannels } from './dashboard';
+
 
 interface SidebarNavProps {
   currentView: string;
@@ -74,6 +76,7 @@ export function SidebarNav({
                         >
                             <span>{channel.icon}</span>
                             <span>{channel.name}</span>
+                             {webhookedChannels.includes(channel.name) && <LinkIcon className="h-3 w-3 text-muted-foreground/70" />}
                         </Button>
                         ))}
                     </div>

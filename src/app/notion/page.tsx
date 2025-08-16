@@ -33,10 +33,10 @@ export default function NotionPage() {
         const notionTasks = await getNotionTasks();
         setTasks(notionTasks);
       } catch (error) {
-        console.error('Failed to fetch Notion tasks:', error);
+        console.error('Failed to fetch tasks:', error);
         toast({
           title: 'Error',
-          description: 'Failed to fetch tasks from Notion. Please check your credentials.',
+          description: 'Failed to fetch tasks from the database. Please check your integration connection.',
           variant: 'destructive',
         });
       }
@@ -61,10 +61,10 @@ export default function NotionPage() {
       <CardHeader>
         <div className="flex items-center gap-2">
             <ListChecks className="h-6 w-6" />
-            <CardTitle>Notion Task Board</CardTitle>
+            <CardTitle>Task Board</CardTitle>
         </div>
         <CardDescription>
-          A live view of tasks from your connected Notion database.
+          A live view of tasks from your connected database.
         </CardDescription>
       </CardHeader>
       <CardContent>
