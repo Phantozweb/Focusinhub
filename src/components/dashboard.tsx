@@ -53,6 +53,9 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [showImageInput, setShowImageInput] = useState(false);
+  const [showFileInput, setShowFileInput] = useState(false);
+
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -170,6 +173,8 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
           setIsEditing(false);
           setImageUrl('');
           setFile(null);
+          setShowImageInput(false);
+          setShowFileInput(false);
           if (fileInputRef.current) fileInputRef.current.value = '';
         } else {
           const errorText = await response.text();
@@ -256,49 +261,74 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
                     />
                 </div>
             )}
-            <div className="w-full space-y-2">
-                <Label htmlFor="image-url" className="flex items-center gap-2">
-                    <ImageIcon /> Embed Image URL (Optional)
-                </Label>
-                <Input
-                    id="image-url"
-                    type="text"
-                    placeholder="https://your-image-url.com/image.png"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    disabled={isSending}
-                />
-            </div>
-             <div className="w-full space-y-2">
-                <Label htmlFor="file-upload" className="flex items-center gap-2">
-                    <Paperclip /> Attach File (Optional)
-                </Label>
-                {file ? (
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm text-muted-foreground truncate">{file.name}</p>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => {
-                                setFile(null);
-                                if (fileInputRef.current) fileInputRef.current.value = '';
-                            }}
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
-                ) : (
+            
+            {showImageInput && (
+                <div className="w-full space-y-2 animate-in fade-in-50">
+                    <Label htmlFor="image-url">Embed Image URL</Label>
                     <Input
-                        id="file-upload"
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                        id="image-url"
+                        type="text"
+                        placeholder="https://your-image-url.com/image.png"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
                         disabled={isSending}
                     />
-                )}
-            </div>
-            <div className='w-full flex items-center gap-2'>
+                </div>
+            )}
+
+            {showFileInput && (
+                 <div className="w-full space-y-2 animate-in fade-in-50">
+                    <Label htmlFor="file-upload">Attach File</Label>
+                    {file ? (
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm text-muted-foreground truncate">{file.name}</p>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => {
+                                    setFile(null);
+                                    if (fileInputRef.current) fileInputRef.current.value = '';
+                                }}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <Input
+                            id="file-upload"
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                            disabled={isSending}
+                        />
+                    )}
+                </div>
+            )}
+
+            <div className='w-full flex items-end gap-2'>
+                <div className="flex flex-col gap-2">
+                     <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => setShowImageInput(!showImageInput)} 
+                        className={cn(showImageInput && "bg-accent text-accent-foreground")}
+                        title="Embed Image"
+                        disabled={isSending || isDrafting}
+                     >
+                        <ImageIcon />
+                     </Button>
+                     <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => setShowFileInput(!showFileInput)}
+                        className={cn(showFileInput && "bg-accent text-accent-foreground")}
+                        title="Attach File"
+                        disabled={isSending || isDrafting}
+                     >
+                        <Paperclip />
+                     </Button>
+                </div>
               <Textarea
                   id="message"
                   placeholder={hasDraft ? "Refine the draft or ask for variations..." : "Type your initial message idea here..."}
@@ -313,7 +343,7 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
                   }}
                   disabled={isDrafting || isSending}
               />
-              <Button onClick={handleSendToAI} disabled={!chatInput || isDrafting || isSending}>
+              <Button onClick={handleSendToAI} disabled={!chatInput || isDrafting || isSending} size="lg">
                 {isDrafting ? <Loader2 className="animate-spin" /> : (chatHistory.length === 0 ? <Wand2 /> : <Send />)} 
                 <span className='sr-only'>{chatHistory.length === 0 ? 'Draft with AI' : 'Send'}</span>
               </Button>
@@ -329,3 +359,5 @@ export function Dashboard({ selectedChannel }: { selectedChannel: string }) {
     </div>
   );
 }
+
+    
