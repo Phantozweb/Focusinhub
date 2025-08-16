@@ -95,53 +95,37 @@ export async function checkInUser(name: string, status: 'Work' | 'Visit'): Promi
     }
 }
 
-export async function checkOutUser(pageId: string, notes: string): Promise<void> {
+export async function checkOutUser(pageId: string, checkInTime: string, notes: string): Promise<void> {
     if (!NOTION_API_KEY) {
         throw new Error('Notion API Key is not configured in the environment.');
     }
 
     try {
-        // First, fetch the page to get the 'Log in' time
-        const pageResponse = await notion.pages.retrieve({ page_id: pageId });
-        const anyPage = pageResponse as any;
-        const checkInText = anyPage.properties['Log in']?.rich_text ? getPlainText(anyPage.properties['Log in'].rich_text) : null;
         const checkOutTime = new Date();
         const checkOutText = checkOutTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
 
-        let totalHoursText = null;
+        let totalHoursText: string | null = null;
+        try {
+            const checkInDate = new Date(checkInTime);
+            const diffMs = checkOutTime.getTime() - checkInDate.getTime();
+            const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+            const diffMins = Math.floor(diffSec / 60);
+            const diffHours = Math.floor(diffMins / 60);
 
-        if (checkInText) {
-            try {
-                // Parse check-in time (e.g., "10:00 AM")
-                const [time, modifier] = checkInText.split(' ');
-                let [hours, minutes] = time.split(':').map(Number);
-                if (modifier.toLowerCase() === 'pm' && hours < 12) {
-                    hours += 12;
-                }
-                if (modifier.toLowerCase() === 'am' && hours === 12) {
-                    hours = 0;
-                }
-                const checkInDate = new Date();
-                checkInDate.setHours(hours, minutes, 0, 0);
-
-                // Calculate duration
-                const diffMs = checkOutTime.getTime() - checkInDate.getTime();
-                const diffSec = Math.floor(diffMs / 1000);
-                const diffMins = Math.floor(diffSec / 60);
-                const diffHours = Math.floor(diffMins / 60);
-
-                if (diffHours > 0) {
-                    totalHoursText = `${diffHours} hr ${diffMins % 60} min`;
-                } else if (diffMins > 0) {
-                    totalHoursText = `${diffMins} min ${diffSec % 60} sec`;
-                } else {
-                    totalHoursText = `${diffSec} sec`;
-                }
-
-            } catch (e) {
-                console.error("Could not calculate total hours", e);
-                totalHoursText = "Error";
+            const hours = diffHours;
+            const minutes = diffMins % 60;
+            const seconds = diffSec % 60;
+            
+            if (hours > 0) {
+                totalHoursText = `${hours} hr ${minutes} min`;
+            } else if (minutes > 0) {
+                totalHoursText = `${minutes} min ${seconds} sec`;
+            } else {
+                totalHoursText = `${seconds} sec`;
             }
+        } catch (e) {
+            console.error("Could not calculate total work duration from check-in time:", e);
+            totalHoursText = "Error";
         }
 
 
@@ -156,7 +140,7 @@ export async function checkOutUser(pageId: string, notes: string): Promise<void>
         });
     } catch (error: any) {
         console.error(`Error checking out user with Notion: ${error.message}`);
-        throw new Error('Failed to update session in Notion.');
+        throw new Error('Failed to update session in Notion. Please check API permissions.');
     }
 }
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -54,14 +55,14 @@ export function UserDashboard({ user }: UserDashboardProps) {
   };
 
   const handleLogoutConfirm = async (notes: string) => {
-    if (!user || !user.notionPageId) {
+    if (!user || !user.notionPageId || !user.checkInTime) {
       toast({ title: "Session error", description: "No active session found. Logging you out.", variant: "destructive" });
       completeLogout();
       return;
     }
 
     try {
-      await checkOutUser(user.notionPageId, notes);
+      await checkOutUser(user.notionPageId, user.checkInTime, notes);
       toast({ title: "Checked Out", description: "Your session has ended and your notes have been saved." });
     } catch (error) {
       console.error("Failed to check out user:", error);
