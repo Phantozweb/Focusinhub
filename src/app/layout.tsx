@@ -4,8 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { SidebarProvider } from '@/components/ui/sidebar';
 
 export const metadata: Metadata = {
-  title: 'Focus-IN Hub',
-  description: 'AI-Powered Internal Communications Hub',
+  title: 'Focus-IN Workspace',
+  description: 'A unified workspace to manage customers, view tasks, and streamline team communication.',
 };
 
 export default function RootLayout({
