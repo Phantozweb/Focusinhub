@@ -8,7 +8,9 @@ const ContactSchema = z.object({
   name: z.string().describe('Full name of the contact.'),
   email: z.string().email().describe('Email address of the contact.'),
   phone: z.string().optional().describe('Phone number of the contact.'),
+  whatsapp: z.string().optional().describe('WhatsApp number of the contact.'),
   institution: z.string().optional().describe('The company, university, or organization the contact is affiliated with.'),
+  membership: z.string().optional().describe('Membership status or type.'),
 });
 
 export const GenerateLeadsInputSchema = z.object({
@@ -21,7 +23,9 @@ const LeadSchema = z.object({
     name: z.string().describe('Full name of the lead.'),
     email: z.string().email().describe('Email address of the lead.'),
     phone: z.string().optional().describe('Phone number of the lead.'),
+    whatsapp: z.string().optional().describe('WhatsApp number of the lead.'),
     institution: z.string().optional().describe('The organization the lead belongs to.'),
+    membership: z.string().optional().describe('Membership status or type.'),
     productInterest: z.enum(['Focus AI', 'Focus Cast', 'Focus Case', 'Focus Clinic']).describe('The product the AI believes this lead would be most interested in.'),
     reasoning: z.string().describe('A brief explanation for why the AI suggested this product interest.'),
 });

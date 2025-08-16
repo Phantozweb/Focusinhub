@@ -76,6 +76,7 @@ type Lead = {
   whatsapp?: string;
   institution?: string;
   product: string;
+  membership?: string;
   district?: string;
   state?: string;
   country?: string;
@@ -143,20 +144,34 @@ export default function CrmPage() {
         try {
             const fileContent = await file.text();
             const parsedContent = JSON.parse(fileContent);
-            
-            const result = await generateLeads({ contacts: parsedContent });
 
-            const newLeads: Lead[] = result.map((lead: any) => ({
-                id: lead.id || `${Date.now()}-${Math.random()}`,
-                name: lead.name,
-                email: lead.email,
-                phone: lead.phone,
-                institution: lead.institution,
-                product: lead.productInterest,
-                status: 'pending',
-                logs: [],
-                lastUpdated: new Date().toISOString(),
-            }));
+            // Check if it's a detailed lead file or a simple contact file
+            const isDetailedLeadFile = parsedContent.length > 0 && 'product' in parsedContent[0] && 'status' in parsedContent[0];
+            
+            let newLeads: Lead[];
+
+            if (isDetailedLeadFile) {
+                newLeads = parsedContent.map((lead: any) => ({
+                    ...lead,
+                    id: lead.id ? String(lead.id) : `${Date.now()}-${Math.random()}`,
+                    logs: lead.logs || [],
+                }));
+            } else {
+                 const result = await generateLeads({ contacts: parsedContent });
+                 newLeads = result.map((lead: any) => ({
+                    id: lead.id || `${Date.now()}-${Math.random()}`,
+                    name: lead.name,
+                    email: lead.email,
+                    phone: lead.phone,
+                    whatsapp: lead.whatsapp,
+                    institution: lead.institution,
+                    membership: lead.membership,
+                    product: lead.productInterest,
+                    status: 'pending',
+                    logs: [],
+                    lastUpdated: new Date().toISOString(),
+                }));
+            }
             
             setLeads(prev => {
                 const updatedLeads = [...prev, ...newLeads];
@@ -164,7 +179,7 @@ export default function CrmPage() {
                 return updatedLeads;
             });
 
-            toast({ title: "Leads Generated", description: `${result.length} new leads have been generated and added.` });
+            toast({ title: "Leads Imported", description: `${newLeads.length} new leads have been imported and added.` });
 
         } catch (error) {
             console.error("Error processing file:", error);
@@ -246,7 +261,8 @@ export default function CrmPage() {
             name: "Janarthan V",
             email: "janarthan@example.com",
             phone: "+919876543210",
-            institution: "Example University"
+            institution: "Example University",
+            membership: "Student Member"
         }];
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sample, null, 2));
         const downloadAnchorNode = document.createElement('a');
