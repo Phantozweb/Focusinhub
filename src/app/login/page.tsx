@@ -62,7 +62,7 @@ export default function Login() {
                     The all-in-one workspace for Focus-IN.
                 </p>
                 <p className="mt-2 text-lg text-muted-foreground/80">
-                    Manage leads, view tasks, and send announcements with the power of AI.
+                    A unified workspace to manage customers, view tasks, and streamline team communication.
                 </p>
             </div>
              <div className="flex w-full items-center justify-center p-4">
